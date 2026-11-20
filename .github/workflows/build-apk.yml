@@ -51,13 +51,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete v3.2.4 --yes || true
-          gh release create v3.2.4 dist/ADrop.apk \
-            --title "ADrop Android v3.2.4" \
-            --notes "### Official ADrop Android Client (v3.2.4)
+          gh release delete v3.2.5 --yes || true
+          gh release create v3.2.5 dist/ADrop.apk \
+            --title "ADrop Android v3.2.5" \
+            --notes "### Official ADrop Android Client (v3.2.5)
           
+          - **In-Place Morphing Circular Download Ring**: Real-time animated SVG progress ring replacing static download button.
+          - **Center Pause / Cancel Control**: Direct one-tap cancellation that stops stream and purges partial downloads.
+          - **Glowing Checkmark (Tick) Completion**: Instant visual confirmation when file is saved to Downloads.
+          - **Live Transfer Speed & Stats**: Real-time throughput (35-40+ MB/s) and percentage display with throttled 200ms updates for zero UI lag.
           - **High-Speed Native Downloader Engine (35-40+ MB/s)**: Bypassed throttled system DownloadManager with direct 128KB buffered native streaming and hardware WifiLock.
-          - **External Media Player Bridge**: Stream heavy 4K/MKV movies directly in VLC / MX Player.
-          - **Hidden Internal Metadata**: Completely hides .file_sources.json and system files.
-          - **Sleek Frameless Video Preview**: Elegant 16:9 player container matching dark obsidian glass aesthetic.
-          - **Themed Pull-to-Refresh Spinner**: Deep obsidian card with glowing violet/indigo spinning arc."
+          - **External Media Player Bridge**: Stream heavy 4K/MKV movies directly in VLC / MX Player."

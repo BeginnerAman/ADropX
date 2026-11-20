@@ -37,9 +37,14 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.io.InterruptedIOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
+import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
@@ -57,6 +62,13 @@ class MainActivity : AppCompatActivity() {
     private val pendingShareUris = mutableListOf<Uri>()
     private var currentConnectedUrl: String? = null
     private var isContentAtTop: Boolean = true
+
+    data class ActiveDownloadTask(
+        val filename: String,
+        val isCancelled: AtomicBoolean = AtomicBoolean(false),
+        @Volatile var connection: HttpURLConnection? = null
+    )
+    private val activeDownloadTasks = ConcurrentHashMap<String, ActiveDownloadTask>()
 
     companion object {
         private const val PREFS_NAME = "ADropPrefs"
@@ -357,7 +369,7 @@ class MainActivity : AppCompatActivity() {
         settings.cacheMode = WebSettings.LOAD_DEFAULT
 
         // Identify as Native Android APK Client
-        settings.userAgentString = "${settings.userAgentString} ADropAndroid/3.2.4"
+        settings.userAgentString = "${settings.userAgentString} ADropAndroid/3.2.5"
 
         // JavaScript Bridge for native interactions
         webView.addJavascriptInterface(object {
@@ -390,6 +402,19 @@ class MainActivity : AppCompatActivity() {
             }
 
             @JavascriptInterface
+            fun cancelDownload(filename: String) {
+                val task = activeDownloadTasks[filename]
+                if (task != null) {
+                    task.isCancelled.set(true)
+                    thread {
+                        try {
+                            task.connection?.disconnect()
+                        } catch (e: Exception) {}
+                    }
+                }
+            }
+
+            @JavascriptInterface
             fun openExternalMedia(url: String) {
                 runOnUiThread {
                     try {
@@ -414,7 +439,7 @@ class MainActivity : AppCompatActivity() {
 
             @JavascriptInterface
             fun getVersion(): String {
-                return "3.2.4"
+                return "3.2.5"
             }
         }, "ADropNative")
 
@@ -483,13 +508,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startHighSpeedDownload(downloadUrl: String, filename: String, mimeTypeHint: String? = null) {
+        if (activeDownloadTasks.containsKey(filename)) {
+            Toast.makeText(this, "Download already in progress for $filename", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         var fullUrl = downloadUrl
         if (!fullUrl.startsWith("http://") && !fullUrl.startsWith("https://")) {
             val base = currentConnectedUrl ?: prefs.getString(KEY_LAST_URL, "http://127.0.0.1:8080") ?: "http://127.0.0.1:8080"
             fullUrl = if (base.endsWith("/")) "$base${fullUrl.removePrefix("/")}" else "$base/$fullUrl"
         }
 
-        Toast.makeText(this, "Downloading $filename at maximum Wi-Fi speed...", Toast.LENGTH_SHORT).show()
+        val task = ActiveDownloadTask(filename)
+        activeDownloadTasks[filename] = task
+
+        val qName = JSONObject.quote(filename)
+        webView.evaluateJavascript("window.ADropDownloadTracker && window.ADropDownloadTracker.onStart($qName);", null)
+
         wakeLock?.acquire(30 * 60 * 1000L)
 
         val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
@@ -504,18 +539,34 @@ class MainActivity : AppCompatActivity() {
 
         thread {
             var totalBytesRead = 0L
+            var totalExpectedSize = 0L
+            var lastReportTime = 0L
+            var lastBytesReported = 0L
             val startTime = System.currentTimeMillis()
             var errorOccurred: String? = null
+            var isUserCancelled = false
+            var insertedUri: Uri? = null
+            var legacyTargetFile: File? = null
 
             try {
                 val urlObj = URL(fullUrl)
                 val conn = urlObj.openConnection() as HttpURLConnection
+                task.connection = conn
                 conn.requestMethod = "GET"
                 conn.connectTimeout = 8000
                 conn.readTimeout = 120000
-                conn.setRequestProperty("User-Agent", "ADropAndroid/3.2.4")
+                conn.setRequestProperty("User-Agent", "ADropAndroid/3.2.5")
                 conn.setRequestProperty("Accept-Encoding", "identity")
                 conn.doInput = true
+
+                val contentLength = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    conn.contentLengthLong
+                } else {
+                    conn.contentLength.toLong()
+                }
+                if (contentLength > 0) {
+                    totalExpectedSize = contentLength
+                }
 
                 val contentType = conn.contentType ?: mimeTypeHint ?: "application/octet-stream"
                 val buffer = ByteArray(131072) // 128 KB buffer for wire speed
@@ -530,19 +581,46 @@ class MainActivity : AppCompatActivity() {
                     val resolver = contentResolver
                     val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
                     if (uri != null) {
+                        insertedUri = uri
                         resolver.openOutputStream(uri)?.use { outStream ->
                             val bufferedOut = BufferedOutputStream(outStream, 131072)
                             val bufferedIn = BufferedInputStream(conn.inputStream, 131072)
                             var bytes: Int
                             while (bufferedIn.read(buffer).also { bytes = it } != -1) {
+                                if (task.isCancelled.get()) {
+                                    isUserCancelled = true
+                                    throw InterruptedIOException("Download cancelled by user")
+                                }
                                 bufferedOut.write(buffer, 0, bytes)
                                 totalBytesRead += bytes
+
+                                val now = System.currentTimeMillis()
+                                if (now - lastReportTime >= 200) {
+                                    val dtSec = (now - lastReportTime) / 1000.0
+                                    val dBytes = totalBytesRead - lastBytesReported
+                                    val instantSpeedMBs = if (dtSec > 0) (dBytes / (1024.0 * 1024.0)) / dtSec else 0.0
+                                    val percent = if (totalExpectedSize > 0) {
+                                        ((totalBytesRead * 100.0) / totalExpectedSize).coerceIn(0.0, 100.0)
+                                    } else {
+                                        -1.0
+                                    }
+                                    val pStr = String.format(Locale.US, "%.1f", percent)
+                                    val sStr = String.format(Locale.US, "%.1f", instantSpeedMBs)
+                                    val js = "window.ADropDownloadTracker && window.ADropDownloadTracker.onProgress($qName, $totalBytesRead, $totalExpectedSize, $pStr, $sStr);"
+                                    runOnUiThread {
+                                        webView.evaluateJavascript(js, null)
+                                    }
+                                    lastReportTime = now
+                                    lastBytesReported = totalBytesRead
+                                }
                             }
                             bufferedOut.flush()
                         }
-                        contentValues.clear()
-                        contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                        resolver.update(uri, contentValues, null, null)
+                        if (!isUserCancelled) {
+                            contentValues.clear()
+                            contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                            resolver.update(uri, contentValues, null, null)
+                        }
                     } else {
                         errorOccurred = "Could not create file in Downloads"
                     }
@@ -551,44 +629,91 @@ class MainActivity : AppCompatActivity() {
                     val targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                     targetDir.mkdirs()
                     val targetFile = File(targetDir, filename)
+                    legacyTargetFile = targetFile
                     FileOutputStream(targetFile).use { outStream ->
                         val bufferedOut = BufferedOutputStream(outStream, 131072)
                         val bufferedIn = BufferedInputStream(conn.inputStream, 131072)
                         var bytes: Int
                         while (bufferedIn.read(buffer).also { bytes = it } != -1) {
+                            if (task.isCancelled.get()) {
+                                isUserCancelled = true
+                                throw InterruptedIOException("Download cancelled by user")
+                            }
                             bufferedOut.write(buffer, 0, bytes)
                             totalBytesRead += bytes
+
+                            val now = System.currentTimeMillis()
+                            if (now - lastReportTime >= 200) {
+                                val dtSec = (now - lastReportTime) / 1000.0
+                                val dBytes = totalBytesRead - lastBytesReported
+                                val instantSpeedMBs = if (dtSec > 0) (dBytes / (1024.0 * 1024.0)) / dtSec else 0.0
+                                val percent = if (totalExpectedSize > 0) {
+                                    ((totalBytesRead * 100.0) / totalExpectedSize).coerceIn(0.0, 100.0)
+                                } else {
+                                    -1.0
+                                }
+                                val pStr = String.format(Locale.US, "%.1f", percent)
+                                val sStr = String.format(Locale.US, "%.1f", instantSpeedMBs)
+                                val js = "window.ADropDownloadTracker && window.ADropDownloadTracker.onProgress($qName, $totalBytesRead, $totalExpectedSize, $pStr, $sStr);"
+                                runOnUiThread {
+                                    webView.evaluateJavascript(js, null)
+                                }
+                                lastReportTime = now
+                                lastBytesReported = totalBytesRead
+                            }
                         }
                         bufferedOut.flush()
                     }
-                    MediaScannerConnection.scanFile(this@MainActivity, arrayOf(targetFile.absolutePath), null, null)
+                    if (!isUserCancelled) {
+                        MediaScannerConnection.scanFile(this@MainActivity, arrayOf(targetFile.absolutePath), null, null)
+                    }
                 }
                 conn.disconnect()
             } catch (e: Exception) {
-                errorOccurred = e.message ?: "Download failed"
+                if (task.isCancelled.get() || e is InterruptedIOException) {
+                    isUserCancelled = true
+                } else {
+                    errorOccurred = e.message ?: "Download failed"
+                }
             } finally {
+                activeDownloadTasks.remove(filename)
                 if (wifiLock != null && wifiLock.isHeld) {
                     wifiLock.release()
+                }
+                if (wakeLock != null && wakeLock?.isHeld == true) {
+                    try { wakeLock?.release() } catch (e: Exception) {}
+                }
+                if (isUserCancelled) {
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && insertedUri != null) {
+                            contentResolver.delete(insertedUri!!, null, null)
+                        } else if (legacyTargetFile?.exists() == true) {
+                            legacyTargetFile?.delete()
+                        }
+                    } catch (e: Exception) {}
                 }
             }
 
             val elapsedSec = (System.currentTimeMillis() - startTime) / 1000.0
-            val speedMBs = if (elapsedSec > 0) (totalBytesRead / (1024.0 * 1024.0)) / elapsedSec else 0.0
+            val avgSpeedMBs = if (elapsedSec > 0) (totalBytesRead / (1024.0 * 1024.0)) / elapsedSec else 0.0
 
             runOnUiThread {
-                if (errorOccurred == null) {
-                    val speedStr = String.format("%.1f MB/s", speedMBs)
+                if (isUserCancelled) {
+                    webView.evaluateJavascript("window.ADropDownloadTracker && window.ADropDownloadTracker.onCancelled($qName);", null)
+                    Toast.makeText(this@MainActivity, "Download cancelled: $filename", Toast.LENGTH_SHORT).show()
+                } else if (errorOccurred == null) {
+                    val avgStr = String.format(Locale.US, "%.1f", avgSpeedMBs)
+                    val completeJs = "window.ADropDownloadTracker && window.ADropDownloadTracker.onComplete($qName, $totalBytesRead, $avgStr);"
+                    webView.evaluateJavascript(completeJs, null)
                     Toast.makeText(
                         this@MainActivity,
-                        "$filename downloaded at $speedStr to Downloads!",
+                        "$filename downloaded at ${String.format(Locale.US, "%.1f MB/s", avgSpeedMBs)} to Downloads!",
                         Toast.LENGTH_LONG
                     ).show()
                 } else {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Download failed: $errorOccurred",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    val qErr = JSONObject.quote(errorOccurred)
+                    webView.evaluateJavascript("window.ADropDownloadTracker && window.ADropDownloadTracker.onError($qName, $qErr);", null)
+                    Toast.makeText(this@MainActivity, "Download failed: $errorOccurred", Toast.LENGTH_LONG).show()
                 }
             }
         }
