@@ -784,7 +784,7 @@ class MainActivity : AppCompatActivity() {
     private fun startQrScanner() {
         val integrator = IntentIntegrator(this)
         integrator.setPrompt("Align with the QR code on your PC screen")
-        integrator.setBeepEnabled(true)
+        integrator.setBeepEnabled(false)
         integrator.setOrientationLocked(true)
         integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
         integrator.initiateScan()
@@ -795,6 +795,17 @@ class MainActivity : AppCompatActivity() {
         val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
         if (result != null) {
             if (result.contents != null) {
+                // Subtle premium haptic feedback on successful scan
+                try {
+                    val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? android.os.Vibrator
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        vibrator?.vibrate(android.os.VibrationEffect.createOneShot(35, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                    } else {
+                        @Suppress("DEPRECATION")
+                        vibrator?.vibrate(35)
+                    }
+                } catch (e: Exception) {}
+
                 val scannedUrl = result.contents
                 connectToUrl(scannedUrl)
             }
