@@ -51,14 +51,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete v3.2.5 --yes || true
-          gh release create v3.2.5 dist/ADrop.apk \
-            --title "ADrop Android v3.2.5" \
-            --notes "### Official ADrop Android Client (v3.2.5)
+          gh release delete v3.2.6 --yes || true
+          gh release create v3.2.6 dist/ADrop.apk \
+            --title "ADrop Android v3.2.6" \
+            --notes "### Official ADrop Android Client (v3.2.6)
           
-          - **In-Place Morphing Circular Download Ring**: Real-time animated SVG progress ring replacing static download button.
-          - **Center Pause / Cancel Control**: Direct one-tap cancellation that stops stream and purges partial downloads.
-          - **Glowing Checkmark (Tick) Completion**: Instant visual confirmation when file is saved to Downloads.
-          - **Live Transfer Speed & Stats**: Real-time throughput (35-40+ MB/s) and percentage display with throttled 200ms updates for zero UI lag.
-          - **High-Speed Native Downloader Engine (35-40+ MB/s)**: Bypassed throttled system DownloadManager with direct 128KB buffered native streaming and hardware WifiLock.
-          - **External Media Player Bridge**: Stream heavy 4K/MKV movies directly in VLC / MX Player."
+          - **Solid Digital Live Stats (Zero Blinking)**: In-place text node updates without DOM destruction, eliminating text flashing.
+          - **Compact Subtitle Layout**: 378/742 MB formatting ensures full wire speed (35-40+ MB/s) is never clipped on mobile screens.
+          - **Custom Obsidian Video Stage**: Glowing central Play button with seamless frameless container and dedicated Open button.
+          - **256 KB Direct Stream Engine**: Ultra-fast direct socket streaming with 300ms throttled UI updates for max Wi-Fi throughput.
+          - **In-Place Morphing Circular Progress Ring**: Real-time animated SVG progress ring with pause/cancel and glowing tick completion."

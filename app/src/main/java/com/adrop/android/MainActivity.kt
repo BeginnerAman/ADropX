@@ -369,7 +369,7 @@ class MainActivity : AppCompatActivity() {
         settings.cacheMode = WebSettings.LOAD_DEFAULT
 
         // Identify as Native Android APK Client
-        settings.userAgentString = "${settings.userAgentString} ADropAndroid/3.2.5"
+        settings.userAgentString = "${settings.userAgentString} ADropAndroid/3.2.6"
 
         // JavaScript Bridge for native interactions
         webView.addJavascriptInterface(object {
@@ -439,7 +439,7 @@ class MainActivity : AppCompatActivity() {
 
             @JavascriptInterface
             fun getVersion(): String {
-                return "3.2.5"
+                return "3.2.6"
             }
         }, "ADropNative")
 
@@ -555,7 +555,7 @@ class MainActivity : AppCompatActivity() {
                 conn.requestMethod = "GET"
                 conn.connectTimeout = 8000
                 conn.readTimeout = 120000
-                conn.setRequestProperty("User-Agent", "ADropAndroid/3.2.5")
+                conn.setRequestProperty("User-Agent", "ADropAndroid/3.2.6")
                 conn.setRequestProperty("Accept-Encoding", "identity")
                 conn.doInput = true
 
@@ -569,7 +569,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 val contentType = conn.contentType ?: mimeTypeHint ?: "application/octet-stream"
-                val buffer = ByteArray(131072) // 128 KB buffer for wire speed
+                val buffer = ByteArray(262144) // 256 KB high-speed buffer for wire speed
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     val contentValues = ContentValues().apply {
@@ -583,10 +583,10 @@ class MainActivity : AppCompatActivity() {
                     if (uri != null) {
                         insertedUri = uri
                         resolver.openOutputStream(uri)?.use { outStream ->
-                            val bufferedOut = BufferedOutputStream(outStream, 131072)
-                            val bufferedIn = BufferedInputStream(conn.inputStream, 131072)
+                            val bufferedOut = BufferedOutputStream(outStream, 262144)
+                            val inStream = conn.inputStream
                             var bytes: Int
-                            while (bufferedIn.read(buffer).also { bytes = it } != -1) {
+                            while (inStream.read(buffer).also { bytes = it } != -1) {
                                 if (task.isCancelled.get()) {
                                     isUserCancelled = true
                                     throw InterruptedIOException("Download cancelled by user")
@@ -595,7 +595,10 @@ class MainActivity : AppCompatActivity() {
                                 totalBytesRead += bytes
 
                                 val now = System.currentTimeMillis()
-                                if (now - lastReportTime >= 200) {
+                                if (lastReportTime == 0L) {
+                                    lastReportTime = now
+                                    lastBytesReported = totalBytesRead
+                                } else if (now - lastReportTime >= 300) {
                                     val dtSec = (now - lastReportTime) / 1000.0
                                     val dBytes = totalBytesRead - lastBytesReported
                                     val instantSpeedMBs = if (dtSec > 0) (dBytes / (1024.0 * 1024.0)) / dtSec else 0.0
@@ -631,10 +634,10 @@ class MainActivity : AppCompatActivity() {
                     val targetFile = File(targetDir, filename)
                     legacyTargetFile = targetFile
                     FileOutputStream(targetFile).use { outStream ->
-                        val bufferedOut = BufferedOutputStream(outStream, 131072)
-                        val bufferedIn = BufferedInputStream(conn.inputStream, 131072)
+                        val bufferedOut = BufferedOutputStream(outStream, 262144)
+                        val inStream = conn.inputStream
                         var bytes: Int
-                        while (bufferedIn.read(buffer).also { bytes = it } != -1) {
+                        while (inStream.read(buffer).also { bytes = it } != -1) {
                             if (task.isCancelled.get()) {
                                 isUserCancelled = true
                                 throw InterruptedIOException("Download cancelled by user")
@@ -643,7 +646,10 @@ class MainActivity : AppCompatActivity() {
                             totalBytesRead += bytes
 
                             val now = System.currentTimeMillis()
-                            if (now - lastReportTime >= 200) {
+                            if (lastReportTime == 0L) {
+                                lastReportTime = now
+                                lastBytesReported = totalBytesRead
+                            } else if (now - lastReportTime >= 300) {
                                 val dtSec = (now - lastReportTime) / 1000.0
                                 val dBytes = totalBytesRead - lastBytesReported
                                 val instantSpeedMBs = if (dtSec > 0) (dBytes / (1024.0 * 1024.0)) / dtSec else 0.0
