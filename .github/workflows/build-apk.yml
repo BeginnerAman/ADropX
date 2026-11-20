@@ -51,13 +51,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete v3.2.0 --yes || true
-          gh release create v3.2.0 dist/ADrop.apk dist/ADrop-v3.2.0.apk \
-            --title "ADrop Android v3.2.0" \
-            --notes "### Official ADrop Android Client (v3.2.0)
+          gh release delete v3.2.1 --yes || true
+          gh release create v3.2.1 dist/ADrop.apk \
+            --title "ADrop Android v3.2.1" \
+            --notes "### Official ADrop Android Client (v3.2.1)
           
-          - **Fullscreen Native WebView**: Zero address bar, pure standalone app experience.
-          - **Camera QR Scanner**: Point at your PC to connect in 1 second.
-          - **Offline LAN File Transfer**: Up to 150+ MB/s direct transfer over WiFi, Hotspot, or USB.
-          - **Background WakeLock**: Transfers stay alive even when screen dims.
-          - **Native Download Manager**: Files save straight to your phone's Downloads folder with progress notifications."
+          - **Auto-Connect**: Automatically connects to your last PC on launch with zero clicks or lag.
+          - **System Share Sheet Integration**: Select files/photos in Gallery and choose 'Share via ADrop'.
+          - **Frosted Glass Pill Redesign**: Premium dark acrylic UI matching ADrop desktop.
+          - **Zero Floating Clutter**: Switched to sleek top-bar Scan button.
+          - **Multi-File Persistence**: Retains file selections without timeouts or background drops."
