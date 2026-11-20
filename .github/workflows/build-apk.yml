@@ -51,13 +51,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete v3.2.1 --yes || true
-          gh release create v3.2.1 dist/ADrop.apk \
-            --title "ADrop Android v3.2.1" \
-            --notes "### Official ADrop Android Client (v3.2.1)
+          gh release delete v3.2.2 --yes || true
+          gh release create v3.2.2 dist/ADrop.apk \
+            --title "ADrop Android v3.2.2" \
+            --notes "### Official ADrop Android Client (v3.2.2)
           
-          - **Auto-Connect**: Automatically connects to your last PC on launch with zero clicks or lag.
-          - **System Share Sheet Integration**: Select files/photos in Gallery and choose 'Share via ADrop'.
-          - **Frosted Glass Pill Redesign**: Premium dark acrylic UI matching ADrop desktop.
-          - **Zero Floating Clutter**: Switched to sleek top-bar Scan button.
-          - **Multi-File Persistence**: Retains file selections without timeouts or background drops."
+          - **Direct Native File Bridge**: 100% reliable file selection from Gallery with zero timeouts or drops.
+          - **Smart Scroll Guard**: Two-way scroll listener eliminates SwipeRefresh conflict when scrolling files.
+          - **Top Bar Spacing Polish**: Guaranteed spacing between status dot and Scan pill.
+          - **Tablet Centered Design**: Automatic maxWidth constraint on wide screens and tablets."

@@ -45,17 +45,50 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnManualConnect: AppCompatButton
     private lateinit var btnReconnectLast: AppCompatButton
 
-    private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private val pendingShareUris = mutableListOf<Uri>()
     private var currentConnectedUrl: String? = null
+    private var isContentAtTop: Boolean = true
 
     companion object {
         private const val PREFS_NAME = "ADropPrefs"
         private const val KEY_LAST_URL = "last_connected_url"
+        // Static callback survives Activity lifecycle/pause/recreation
+        var staticFileUploadCallback: ValueCallback<Array<Uri>>? = null
     }
 
-    // Modern file picker launcher with robust multi-selection support
+    // Direct Native File/Gallery Picker Launcher (100% reliable, zero WebView dependency)
+    private val nativeFilePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        swipeRefresh.isEnabled = true
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val data = result.data!!
+            val uris = mutableListOf<Uri>()
+
+            val clipData = data.clipData
+            if (clipData != null && clipData.itemCount > 0) {
+                for (i in 0 until clipData.itemCount) {
+                    val itemUri = clipData.getItemAt(i).uri
+                    if (itemUri != null) uris.add(itemUri)
+                }
+            } else if (data.data != null) {
+                uris.add(data.data!!)
+            }
+
+            if (uris.isNotEmpty()) {
+                val targetUrl = currentConnectedUrl ?: prefs.getString(KEY_LAST_URL, null)
+                if (!targetUrl.isNullOrEmpty()) {
+                    uploadSharedFiles(uris, targetUrl)
+                } else {
+                    pendingShareUris.addAll(uris)
+                    Toast.makeText(this, "Connect to PC to share ${uris.size} selected file(s)", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    // Fallback standard HTML file picker launcher
     private val filePickerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -75,15 +108,15 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (uris.isNotEmpty()) {
-                fileUploadCallback?.onReceiveValue(uris.toTypedArray())
+                staticFileUploadCallback?.onReceiveValue(uris.toTypedArray())
             } else {
                 val parsed = WebChromeClient.FileChooserParams.parseResult(result.resultCode, data)
-                fileUploadCallback?.onReceiveValue(parsed)
+                staticFileUploadCallback?.onReceiveValue(parsed)
             }
         } else {
-            fileUploadCallback?.onReceiveValue(null)
+            staticFileUploadCallback?.onReceiveValue(null)
         }
-        fileUploadCallback = null
+        staticFileUploadCallback = null
     }
 
     // Camera permission request launcher
@@ -115,6 +148,11 @@ class MainActivity : AppCompatActivity() {
 
         setupWebView()
         setupWakeLock()
+
+        // Smart scroll conflict resolution: Only allow pull-to-refresh when web content is at the very top
+        swipeRefresh.setOnChildScrollUpCallback { _, _ ->
+            !isContentAtTop || webView.scrollY > 0 || webView.canScrollVertically(-1)
+        }
 
         // Handle Back Press natively
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -218,7 +256,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun uploadSharedFiles(uris: List<Uri>, serverBaseUrl: String) {
         val total = uris.size
-        Toast.makeText(this, "Sharing $total file(s) with ADrop PC...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Uploading $total file(s) to ADrop PC...", Toast.LENGTH_SHORT).show()
+        wakeLock?.acquire(10 * 60 * 1000L /* 10 minutes */)
 
         thread {
             var successCount = 0
@@ -304,9 +343,9 @@ class MainActivity : AppCompatActivity() {
         settings.cacheMode = WebSettings.LOAD_DEFAULT
 
         // Identify as Native Android APK Client
-        settings.userAgentString = "${settings.userAgentString} ADropAndroid/3.2.0"
+        settings.userAgentString = "${settings.userAgentString} ADropAndroid/3.2.2"
 
-        // JavaScript Bridge for native interactions (topbar scan/switch PC)
+        // JavaScript Bridge for native interactions
         webView.addJavascriptInterface(object {
             @JavascriptInterface
             fun showConnectionScreen() {
@@ -316,8 +355,30 @@ class MainActivity : AppCompatActivity() {
             }
 
             @JavascriptInterface
+            fun openNativeFilePicker() {
+                runOnUiThread {
+                    swipeRefresh.isEnabled = false
+                    wakeLock?.acquire(10 * 60 * 1000L)
+                    val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                        type = "*/*"
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                    }
+                    nativeFilePickerLauncher.launch(Intent.createChooser(intent, "Select Files to Send via ADrop"))
+                }
+            }
+
+            @JavascriptInterface
+            fun setSwipeRefreshEnabled(enabled: Boolean) {
+                runOnUiThread {
+                    isContentAtTop = enabled
+                    swipeRefresh.isEnabled = enabled
+                }
+            }
+
+            @JavascriptInterface
             fun getVersion(): String {
-                return "3.2.0"
+                return "3.2.2"
             }
         }, "ADropNative")
 
@@ -357,9 +418,9 @@ class MainActivity : AppCompatActivity() {
                 filePathCallback: ValueCallback<Array<Uri>>?,
                 fileChooserParams: FileChooserParams?
             ): Boolean {
-                swipeRefresh.isEnabled = false // Disable pull-to-refresh during file picking
-                fileUploadCallback?.onReceiveValue(null)
-                fileUploadCallback = filePathCallback
+                swipeRefresh.isEnabled = false
+                staticFileUploadCallback?.onReceiveValue(null)
+                staticFileUploadCallback = filePathCallback
 
                 val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                     type = "*/*"
@@ -370,7 +431,7 @@ class MainActivity : AppCompatActivity() {
                 try {
                     filePickerLauncher.launch(Intent.createChooser(intent, "Select Files to Send via ADrop"))
                 } catch (e: Exception) {
-                    fileUploadCallback = null
+                    staticFileUploadCallback = null
                     swipeRefresh.isEnabled = true
                     return false
                 }

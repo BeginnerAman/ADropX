@@ -23,14 +23,15 @@
             android:layout_height="match_parent" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <!-- Connection Setup Stage (Shown when not connected or on offline fallback) -->
+    <!-- Connection Setup Stage (Constrained to max 460dp on Tablets, Full Width on Phones) -->
     <LinearLayout
         android:id="@+id/connectionLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
         android:padding="24dp"
+        app:layout_constraintWidth_max="460dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
