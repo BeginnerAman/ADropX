@@ -3,17 +3,21 @@ package com.adrop.android
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.DownloadManager
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.database.Cursor
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Parcelable
 import android.os.PowerManager
+import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.view.View
 import android.webkit.*
@@ -28,6 +32,10 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.ContextCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.zxing.integration.android.IntentIntegrator
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
@@ -349,7 +357,7 @@ class MainActivity : AppCompatActivity() {
         settings.cacheMode = WebSettings.LOAD_DEFAULT
 
         // Identify as Native Android APK Client
-        settings.userAgentString = "${settings.userAgentString} ADropAndroid/3.2.3"
+        settings.userAgentString = "${settings.userAgentString} ADropAndroid/3.2.4"
 
         // JavaScript Bridge for native interactions
         webView.addJavascriptInterface(object {
@@ -375,6 +383,28 @@ class MainActivity : AppCompatActivity() {
             }
 
             @JavascriptInterface
+            fun downloadFile(url: String, filename: String) {
+                runOnUiThread {
+                    startHighSpeedDownload(url, filename)
+                }
+            }
+
+            @JavascriptInterface
+            fun openExternalMedia(url: String) {
+                runOnUiThread {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            setDataAndType(Uri.parse(url), "video/*")
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(Intent.createChooser(intent, "Play with"))
+                    } catch (e: Exception) {
+                        Toast.makeText(this@MainActivity, "No external video player found", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            @JavascriptInterface
             fun setSwipeRefreshEnabled(enabled: Boolean) {
                 runOnUiThread {
                     isContentAtTop = enabled
@@ -384,7 +414,7 @@ class MainActivity : AppCompatActivity() {
 
             @JavascriptInterface
             fun getVersion(): String {
-                return "3.2.3"
+                return "3.2.4"
             }
         }, "ADropNative")
 
@@ -445,25 +475,121 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Native Download Listener using Android DownloadManager
-        webView.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
+        // High-Speed Direct Native Download Engine (Bypasses throttled Android DownloadManager)
+        webView.setDownloadListener { url, _, contentDisposition, mimeType, _ ->
+            val filename = URLUtil.guessFileName(url, contentDisposition, mimeType)
+            startHighSpeedDownload(url, filename, mimeType)
+        }
+    }
+
+    private fun startHighSpeedDownload(downloadUrl: String, filename: String, mimeTypeHint: String? = null) {
+        var fullUrl = downloadUrl
+        if (!fullUrl.startsWith("http://") && !fullUrl.startsWith("https://")) {
+            val base = currentConnectedUrl ?: prefs.getString(KEY_LAST_URL, "http://127.0.0.1:8080") ?: "http://127.0.0.1:8080"
+            fullUrl = if (base.endsWith("/")) "$base${fullUrl.removePrefix("/")}" else "$base/$fullUrl"
+        }
+
+        Toast.makeText(this, "Downloading $filename at maximum Wi-Fi speed...", Toast.LENGTH_SHORT).show()
+        wakeLock?.acquire(30 * 60 * 1000L)
+
+        val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+        val wifiLock = wifiManager?.createWifiLock(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                WifiManager.WIFI_MODE_FULL_LOW_LATENCY
+            else
+                WifiManager.WIFI_MODE_FULL_HIGH_PERF,
+            "ADrop:HighSpeedDownload"
+        )
+        wifiLock?.acquire()
+
+        thread {
+            var totalBytesRead = 0L
+            val startTime = System.currentTimeMillis()
+            var errorOccurred: String? = null
+
             try {
-                val request = DownloadManager.Request(Uri.parse(url))
-                val filename = URLUtil.guessFileName(url, contentDisposition, mimeType)
+                val urlObj = URL(fullUrl)
+                val conn = urlObj.openConnection() as HttpURLConnection
+                conn.requestMethod = "GET"
+                conn.connectTimeout = 8000
+                conn.readTimeout = 120000
+                conn.setRequestProperty("User-Agent", "ADropAndroid/3.2.4")
+                conn.setRequestProperty("Accept-Encoding", "identity")
+                conn.doInput = true
 
-                request.setMimeType(mimeType)
-                request.addRequestHeader("User-Agent", userAgent)
-                request.setDescription("Downloading file via ADrop...")
-                request.setTitle(filename)
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename)
+                val contentType = conn.contentType ?: mimeTypeHint ?: "application/octet-stream"
+                val buffer = ByteArray(131072) // 128 KB buffer for wire speed
 
-                val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                dm.enqueue(request)
-                Toast.makeText(this, "Downloading $filename...", Toast.LENGTH_SHORT).show()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                        put(MediaStore.MediaColumns.MIME_TYPE, contentType)
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                        put(MediaStore.MediaColumns.IS_PENDING, 1)
+                    }
+                    val resolver = contentResolver
+                    val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                    if (uri != null) {
+                        resolver.openOutputStream(uri)?.use { outStream ->
+                            val bufferedOut = BufferedOutputStream(outStream, 131072)
+                            val bufferedIn = BufferedInputStream(conn.inputStream, 131072)
+                            var bytes: Int
+                            while (bufferedIn.read(buffer).also { bytes = it } != -1) {
+                                bufferedOut.write(buffer, 0, bytes)
+                                totalBytesRead += bytes
+                            }
+                            bufferedOut.flush()
+                        }
+                        contentValues.clear()
+                        contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                        resolver.update(uri, contentValues, null, null)
+                    } else {
+                        errorOccurred = "Could not create file in Downloads"
+                    }
+                } else {
+                    @Suppress("DEPRECATION")
+                    val targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    targetDir.mkdirs()
+                    val targetFile = File(targetDir, filename)
+                    FileOutputStream(targetFile).use { outStream ->
+                        val bufferedOut = BufferedOutputStream(outStream, 131072)
+                        val bufferedIn = BufferedInputStream(conn.inputStream, 131072)
+                        var bytes: Int
+                        while (bufferedIn.read(buffer).also { bytes = it } != -1) {
+                            bufferedOut.write(buffer, 0, bytes)
+                            totalBytesRead += bytes
+                        }
+                        bufferedOut.flush()
+                    }
+                    MediaScannerConnection.scanFile(this@MainActivity, arrayOf(targetFile.absolutePath), null, null)
+                }
+                conn.disconnect()
             } catch (e: Exception) {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                startActivity(intent)
+                errorOccurred = e.message ?: "Download failed"
+            } finally {
+                if (wifiLock != null && wifiLock.isHeld) {
+                    wifiLock.release()
+                }
+            }
+
+            val elapsedSec = (System.currentTimeMillis() - startTime) / 1000.0
+            val speedMBs = if (elapsedSec > 0) (totalBytesRead / (1024.0 * 1024.0)) / elapsedSec else 0.0
+
+            runOnUiThread {
+                if (errorOccurred == null) {
+                    val speedStr = String.format("%.1f MB/s", speedMBs)
+                    Toast.makeText(
+                        this@MainActivity,
+                        "$filename downloaded at $speedStr to Downloads!",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Download failed: $errorOccurred",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
     }
