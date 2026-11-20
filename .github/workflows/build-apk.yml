@@ -51,13 +51,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete v3.2.6 --yes || true
-          gh release create v3.2.6 dist/ADrop.apk \
-            --title "ADrop Android v3.2.6" \
-            --notes "### Official ADrop Android Client (v3.2.6)
+          gh release delete v3.2.7 --yes || true
+          gh release create v3.2.7 dist/ADrop.apk \
+            --title "ADrop Android v3.2.7" \
+            --notes "### Official ADrop Android Client (v3.2.7)
           
-          - **Solid Digital Live Stats (Zero Blinking)**: In-place text node updates without DOM destruction, eliminating text flashing.
-          - **Compact Subtitle Layout**: 378/742 MB formatting ensures full wire speed (35-40+ MB/s) is never clipped on mobile screens.
-          - **Custom Obsidian Video Stage**: Glowing central Play button with seamless frameless container and dedicated Open button.
-          - **256 KB Direct Stream Engine**: Ultra-fast direct socket streaming with 300ms throttled UI updates for max Wi-Fi throughput.
-          - **In-Place Morphing Circular Progress Ring**: Real-time animated SVG progress ring with pause/cancel and glowing tick completion."
+          - **Full Wire Download Speed (35-40+ MB/s)**: Restored 128KB zero-overhead stream with THREAD_PRIORITY_MORE_FAVORABLE to eliminate all TCP window stalls and initial delays.
+          - **Clean Video Preview**: Pure distraction-free 16:9 player with no overlays or ghost circles, plus dedicated Open button.
+          - **1.5s Throttled UI Progress**: Lightweight updates preventing CPU/GPU compositor contention on mobile devices.
+          - **Zero-Blinking Live Stats**: In-place text node updates with compact 378/742 MB formatting."
