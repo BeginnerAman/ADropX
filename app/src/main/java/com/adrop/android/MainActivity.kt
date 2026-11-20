@@ -139,6 +139,11 @@ class MainActivity : AppCompatActivity() {
         // Initialize UI Elements
         webView = findViewById(R.id.webView)
         swipeRefresh = findViewById(R.id.swipeRefresh)
+        swipeRefresh.setProgressBackgroundColorSchemeColor(android.graphics.Color.parseColor("#16162a"))
+        swipeRefresh.setColorSchemeColors(
+            android.graphics.Color.parseColor("#7c83ff"),
+            android.graphics.Color.parseColor("#a78bfa")
+        )
         connectionLayout = findViewById(R.id.connectionLayout)
         tvStatusNotice = findViewById(R.id.tvStatusNotice)
         etIpAddress = findViewById(R.id.etIpAddress)
@@ -274,6 +279,7 @@ class MainActivity : AppCompatActivity() {
                         conn.connectTimeout = 8000
                         conn.readTimeout = 60000
                         conn.setRequestProperty("X-Filename", filename)
+                        conn.setRequestProperty("X-Device-Type", "mobile")
                         conn.setChunkedStreamingMode(65536)
 
                         stream.use { input ->
@@ -343,7 +349,7 @@ class MainActivity : AppCompatActivity() {
         settings.cacheMode = WebSettings.LOAD_DEFAULT
 
         // Identify as Native Android APK Client
-        settings.userAgentString = "${settings.userAgentString} ADropAndroid/3.2.2"
+        settings.userAgentString = "${settings.userAgentString} ADropAndroid/3.2.3"
 
         // JavaScript Bridge for native interactions
         webView.addJavascriptInterface(object {
@@ -378,7 +384,7 @@ class MainActivity : AppCompatActivity() {
 
             @JavascriptInterface
             fun getVersion(): String {
-                return "3.2.2"
+                return "3.2.3"
             }
         }, "ADropNative")
 

@@ -51,12 +51,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete v3.2.2 --yes || true
-          gh release create v3.2.2 dist/ADrop.apk \
-            --title "ADrop Android v3.2.2" \
-            --notes "### Official ADrop Android Client (v3.2.2)
+          gh release delete v3.2.3 --yes || true
+          gh release create v3.2.3 dist/ADrop.apk \
+            --title "ADrop Android v3.2.3" \
+            --notes "### Official ADrop Android Client (v3.2.3)
           
-          - **Direct Native File Bridge**: 100% reliable file selection from Gallery with zero timeouts or drops.
-          - **Smart Scroll Guard**: Two-way scroll listener eliminates SwipeRefresh conflict when scrolling files.
-          - **Top Bar Spacing Polish**: Guaranteed spacing between status dot and Scan pill.
-          - **Tablet Centered Design**: Automatic maxWidth constraint on wide screens and tablets."
+          - **Device-Aware Source Indicators**: Files uploaded from this phone show a clean 'From Phone' badge instead of a redundant download button; PC files show Download.
+          - **Themed Pull-to-Refresh Spinner**: Deep obsidian background with signature glowing violet/indigo spinning arc.
+          - **Friendly Unshare / Remove**: Fear-free 'Remove from list' replacing scary red 'Delete' with clear safety assurances.
+          - **Direct Native File Bridge**: 100% reliable file selection from Gallery with zero timeouts or drops."
