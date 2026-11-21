@@ -13,7 +13,7 @@ GitHub Releases: https://github.com/BeginnerAman/ADropX/releases/latest
 
 - 1. Executive Summary
 - 2. Performance Benchmarks
-- 3. Core High-Speed Transfer Engine
+- 3. Core Platform Features
 - 4. Windows Desktop Power Suite
 - 5. Competitive Matrix: ADropX vs Alternatives
 - 6. Official Packages and Downloads
@@ -64,34 +64,58 @@ All benchmarks were measured in real-world local environments transferring uncom
 
 ---
 
-## 3. Core High-Speed Transfer Engine
+## 3. Core Platform Features
 
 ### 1. High-Throughput Socket Pipeline
-ADropX utilizes an asynchronous multi-threaded streaming pipeline built on non-blocking I/O loops. File chunks are dispatched across persistent TCP sockets with dynamic buffer allocation, enabling sustained high-speed transfers without throughput stutter.
+ADropX utilizes an asynchronous multi-threaded streaming pipeline built on non-blocking I/O loops. File chunks are dispatched across persistent TCP sockets with dynamic buffer allocation, enabling sustained high-speed transfers reaching 150+ MB/s without throughput stutter.
 
-### 2. In-Browser 4K Video and Audio Streaming
-ADropX implements HTTP Range Request headers (`bytes=start-end`), allowing phones and connected computers to stream 4K MKV, MP4, WebM, and FLAC media directly in the browser. Users can scrub forward and backward on the playback timeline instantly without waiting for the full file to download first.
+### 2. Native Hardware-Accelerated C# WPF Installer
+The Windows setup program (`ADropX-Setup.exe`) is compiled with Microsoft .NET DirectWrite hardware acceleration:
+- Starts in 0.05 seconds with zero white flash.
+- Operates without administrator (UAC) prompts, installing to the local user profile directory (`%LOCALAPPDATA%\Programs\ADropX`).
+- Dual Desktop Shortcut resolution automatically handles standard Desktop and OneDrive Cloud redirected Desktop directories.
+- Registers a clean uninstaller in Windows Settings under Installed Apps with developer attribution and version tags.
 
-### 3. Resumable Chunk Transfers
-Network fluctuations and momentary signal drops do not require restarting file transfers from scratch. The client tracks chunk byte offsets; if a connection pauses, transferring resumes from the exact byte where it left off.
+### 3. Dedicated Android Companion App (v3.3.1)
+The official native Android client (`ADropX.apk`) provides convenience features for power users:
+- Viewfinder Camera Scanner: Launches immediately into a camera viewfinder with 50ms haptic vibration upon pairing.
+- Background WakeLock Engine: Keeps CPU and WiFi chipsets awake during multi-gigabyte transfers, preventing Android from pausing transfers when the phone screen turns off.
+- System Download Folder Routing: Automatically routes saved files into the native Android public `Download/` folder.
+- Gallery Multi-Picker: Select hundreds of photos or videos simultaneously from Android storage.
 
-### 4. RAM-Safe Fixed Buffer Architecture
-Many file transfer utilities buffer entire files in system RAM before writing to disk, leading to memory exhaustion or browser crashes on large files. ADropX enforces fixed 2 MB to 4 MB streaming buffers. Memory consumption remains completely flat (under 15 MB) whether moving a 50 KB image or an 80 GB Blu-ray disk image.
-
-### 5. Batch Folder and Multi-File ZIP Creation
-Users can select individual files or entire directory trees on the desktop. The recipient can download all selected items in a single package as an uncompressed or standard ZIP archive.
-
-### 6. Zero-Install Progressive Web App (Universal Mode)
+### 4. Zero-Install Progressive Web App (Universal Mode)
 Devices without the native companion app connect through their web browser. The transfer interface runs as an offline PWA compatible with:
 - Apple iPhone and iPad (Safari on iOS / iPadOS)
 - Android devices (Chrome, Samsung Internet, Firefox, Brave)
 - Mac, Linux, and secondary Windows PCs (Chrome, Firefox, Safari, Edge)
 
-### 7. PIN Code Access Protection
+### 5. Smart Clipboard with Automated Entity Detection
+ADropX includes an intelligent two-way clipboard synchronization engine. When text is shared between devices, the parser automatically identifies content types and provides dedicated one-tap action chips:
+- One-Time Passwords (OTPs): Detects 4-digit, 6-digit, and 8-digit verification codes and surfaces a one-tap "Copy Code" chip.
+- Web URLs: Detects links and surfaces a one-tap "Open Link" button.
+- Phone Numbers: Detects telephone numbers and surfaces a one-tap "Dial" button on mobile devices.
+- Email Addresses: Detects emails and surfaces a one-tap "Compose" button.
+
+### 6. In-Browser 4K Video and Audio Streaming
+ADropX implements HTTP Range Request headers (`bytes=start-end`), allowing phones and connected computers to stream 4K MKV, MP4, WebM, and FLAC media directly in the browser. Users can scrub forward and backward on the playback timeline instantly without waiting for the full file to download first.
+
+### 7. Resumable Chunk Transfers
+Network fluctuations and momentary signal drops do not require restarting file transfers from scratch. The client tracks chunk byte offsets; if a connection pauses, transferring resumes from the exact byte where it left off.
+
+### 8. RAM-Safe Fixed Buffer Architecture
+Many file transfer utilities buffer entire files in system RAM before writing to disk, leading to memory exhaustion or browser crashes on large files. ADropX enforces fixed 2 MB to 4 MB streaming buffers. Memory consumption remains completely flat (under 15 MB) whether moving a 50 KB image or an 80 GB Blu-ray disk image.
+
+### 9. Batch Folder and Multi-File ZIP Creation
+Users can select individual files or entire directory trees on the desktop. The recipient can download all selected items in a single package as an uncompressed or standard ZIP archive.
+
+### 10. PIN Code Access Protection
 When operating on public or shared networks (such as coffee shops, shared student dorms, or corporate offices), the desktop host can activate PIN Security in Settings. Any connecting phone or computer must enter the matching 4-digit PIN code before viewing or uploading files.
 
-### 8. Dark OLED Glassmorphic User Interface
+### 11. Dark OLED Glassmorphic User Interface
 Designed with deep `#0a0a1a` OLED black surfaces, frosted glass translucent cards, indigo `#7c83ff` accent highlights, and crisp Lucide vector icons. The interface reduces battery consumption on OLED mobile displays and prevents eye fatigue during evening use.
+
+### 12. 100% Private and Local Network Isolation
+All file streams travel strictly between your PC and phone hardware interfaces. Zero cloud servers are involved, zero user accounts are required, and zero telemetry or analytics are collected.
 
 ---
 
