@@ -4,30 +4,41 @@ High-Speed Offline Local File Transfer Platform for Windows and Android.
 
 ADropX is a high-performance, zero-cloud local file transfer platform created by Aman Vishwakarma. It enables bidirectional file sharing, folder archiving, 4K media streaming, and real-time clipboard synchronization between Windows computers and mobile devices at maximum physical network speeds without consuming internet bandwidth.
 
+[![Version](https://img.shields.io/badge/version-v3.3.1-7c83ff?style=flat-square)](https://github.com/BeginnerAman/ADropX/releases/latest)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Android-10b981?style=flat-square)](https://github.com/BeginnerAman/ADropX)
+[![Speed](https://img.shields.io/badge/transfer%20speed-Full%20LAN%20Hardware-448aff?style=flat-square)](https://github.com/BeginnerAman/ADropX)
+[![Network](https://img.shields.io/badge/network-100%25%20Offline%20LAN-00e676?style=flat-square)](https://github.com/BeginnerAman/ADropX)
+[![License](https://img.shields.io/badge/license-Freeware%20%7C%20Free-9399ff?style=flat-square)](https://github.com/BeginnerAman/ADropX)
+[![Privacy](https://img.shields.io/badge/privacy-Zero%20Cloud%20Telemetry-16213e?style=flat-square)](https://github.com/BeginnerAman/ADropX)
+
 Official Website: https://beginneraman.github.io/ADropX/  
 GitHub Releases: https://github.com/BeginnerAman/ADropX/releases/latest
 
 ---
 
+<a id="table-of-contents"></a>
 ## Table of Contents
 
-- 1. Executive Summary
-- 2. Performance Benchmarks
-- 3. Core Platform Features
-- 4. Windows Desktop Power Suite
-- 5. Competitive Matrix: ADropX vs Alternatives
-- 6. Official Packages and Downloads
-- 7. Connection Methods and Setup Guide
-- 8. Android Companion Client vs Web Mode
-- 9. Smart Clipboard and OTP Engine
-- 10. Technical Architecture and Protocols
-- 11. Security, Privacy, and Network Isolation
-- 12. Troubleshooting and Network Diagnostics
-- 13. System Requirements
-- 14. Developer Attribution and Terms of Use
+- [1. Executive Summary](#1-executive-summary)
+- [2. Core Platform Features](#2-core-platform-features)
+- [3. Windows Desktop Power Suite](#3-windows-desktop-power-suite)
+- [4. Visual Design Tokens and OLED Aesthetics](#4-visual-design-tokens-and-oled-aesthetics)
+- [5. Competitive Matrix: ADropX vs Alternatives](#5-competitive-matrix-adropx-vs-alternatives)
+- [6. Official Packages and Downloads](#6-official-packages-and-downloads)
+- [7. Connection Methods and Setup Guide](#7-connection-methods-and-setup-guide)
+- [8. Android Companion Client vs Web Mode](#8-android-companion-client-vs-web-mode)
+- [9. Smart Clipboard and OTP Engine](#9-smart-clipboard-and-otp-engine)
+- [10. Desktop Keyboard Shortcuts](#10-desktop-keyboard-shortcuts)
+- [11. Technical Architecture and Protocols](#11-technical-architecture-and-protocols)
+- [12. Configuration Reference and Settings Dictionary](#12-configuration-reference-and-settings-dictionary)
+- [13. Security, Privacy, and Network Isolation](#13-security-privacy-and-network-isolation)
+- [14. Troubleshooting and Network Diagnostics](#14-troubleshooting-and-network-diagnostics)
+- [15. System Requirements](#15-system-requirements)
+- [16. Developer Attribution and Terms of Use](#16-developer-attribution-and-terms-of-use)
 
 ---
 
+<a id="1-executive-summary"></a>
 ## 1. Executive Summary
 
 Moving files between a Windows PC and mobile devices has traditionally suffered from friction, slow transfer speeds, and unnecessary privacy risks:
@@ -38,36 +49,19 @@ Moving files between a Windows PC and mobile devices has traditionally suffered 
 - USB cables require physical tethering, specific OEM drivers, and tedious file-manager navigation.
 - Ecosystem-locked solutions (such as Apple AirDrop) do not bridge Windows and Android hardware.
 
-ADropX transforms your computer into a localized, high-throughput network host. Using your local WiFi network, mobile phone hotspot, or USB tethering, ADropX streams data directly between device network interface cards (NICs) at physical link speeds up to 150+ MB/s.
+ADropX transforms your computer into a localized, high-throughput network host. Using your local WiFi network, mobile phone hotspot, or USB tethering, ADropX streams data directly between device network interface cards (NICs) at full local hardware bandwidth.
 
 No internet connection is required. No account registration is needed. No telemetry data is collected.
 
----
-
-## 2. Performance Benchmarks
-
-ADropX is engineered to saturate local hardware bandwidth. Transfer speed is bounded only by the physical capability of your network router, wireless frequency band, and storage drive write speeds.
-
-### Real-World Transfer Speed Comparison
-
-| Network Mode / Medium | ADropX Transfer Speed | Time for 1 GB File | Time for 10 GB 4K Video |
-| :--- | :--- | :--- | :--- |
-| **5 GHz WiFi 6 (802.11ax)** | 120 - 165 MB/s | ~6.5 seconds | ~65 seconds |
-| **5 GHz WiFi 5 (802.11ac)** | 70 - 110 MB/s | ~10.5 seconds | ~1.7 minutes |
-| **Mobile Hotspot (5 GHz band)** | 45 - 75 MB/s | ~16 seconds | ~2.5 minutes |
-| **USB Tethering (USB 3.0)** | 50 - 85 MB/s | ~14 seconds | ~2.2 minutes |
-| **2.4 GHz WiFi (802.11n)** | 22 - 32 MB/s | ~38 seconds | ~5.8 minutes |
-| **Bluetooth 5.0 (Standard)** | 1.2 - 2.1 MB/s | ~8.5 minutes | ~85 minutes |
-| **Cloud Storage (100 Mbps ISP)** | 10 - 12 MB/s (x2 cycles) | ~2.8 minutes | ~28 minutes |
-
-All benchmarks were measured in real-world local environments transferring uncompressed video archives and raw image batches.
+[Back to Top](#table-of-contents)
 
 ---
 
-## 3. Core Platform Features
+<a id="2-core-platform-features"></a>
+## 2. Core Platform Features
 
 ### 1. High-Throughput Socket Pipeline
-ADropX utilizes an asynchronous multi-threaded streaming pipeline built on non-blocking I/O loops. File chunks are dispatched across persistent TCP sockets with dynamic buffer allocation, enabling sustained high-speed transfers reaching 150+ MB/s without throughput stutter.
+ADropX utilizes an asynchronous multi-threaded streaming pipeline built on non-blocking I/O loops. File chunks are dispatched across persistent TCP sockets with dynamic buffer allocation, enabling sustained high-speed transfers without throughput stutter, limited only by your local router and device write speed.
 
 ### 2. Native Hardware-Accelerated C# WPF Installer
 The Windows setup program (`ADropX-Setup.exe`) is compiled with Microsoft .NET DirectWrite hardware acceleration:
@@ -117,9 +111,12 @@ Designed with deep `#0a0a1a` OLED black surfaces, frosted glass translucent card
 ### 12. 100% Private and Local Network Isolation
 All file streams travel strictly between your PC and phone hardware interfaces. Zero cloud servers are involved, zero user accounts are required, and zero telemetry or analytics are collected.
 
+[Back to Top](#table-of-contents)
+
 ---
 
-## 4. Windows Desktop Power Suite
+<a id="3-windows-desktop-power-suite"></a>
+## 3. Windows Desktop Power Suite
 
 The desktop executable (`ADropX.exe` and `ADropX-Setup.exe`) incorporates a dedicated suite of desktop features engineered specifically for Windows productivity:
 
@@ -179,8 +176,35 @@ The desktop dock includes a direct "Share APK" option that serves the official `
 ### 13. Interactive Click-to-Zoom QR Dock
 The bottom dock features a mini QR thumbnail with hover glow. Clicking the thumbnail opens a high-resolution connection modal displaying the auto-detected local IP address, port, and a one-click "Copy Link" utility.
 
+[Back to Top](#table-of-contents)
+
 ---
 
+<a id="4-visual-design-tokens-and-oled-aesthetics"></a>
+## 4. Visual Design Tokens and OLED Aesthetics
+
+ADropX is styled with custom dark glassmorphism design tokens matching both the Windows desktop shell and mobile web interface:
+
+| Token Name | Hex / Value | Component Mapping |
+| :--- | :--- | :--- |
+| `--bg-primary` | `#0a0a1a` | Pitch-black base background (OLED energy saving) |
+| `--bg-secondary` | `#1a1a2e` | Glass panel surface and modal body background |
+| `--bg-accent` | `#16213e` | Elevated dock, header surface, and dropdowns |
+| `--accent` | `#7c83ff` | Primary interactive brand color and glow borders |
+| `--accent-hover` | `#9399ff` | Interactive button hover state |
+| `--color-success` | `#00e676` | Connected indicator, download badges, emerald buttons |
+| `--color-error` | `#ff5252` | Window close button hover state, error chips |
+| `--color-progress` | `#448aff` | Active upload and download transfer progress bars |
+| `--text-primary` | `#e0e0ff` | Headings, file names, and primary labels |
+| `--text-secondary`| `#8888aa` | File size labels, timestamps, and secondary descriptions |
+| `--glass-bg` | `rgba(255, 255, 255, 0.05)` | Translucent frosted cards and drawer panels |
+| `--glass-border` | `rgba(255, 255, 255, 0.10)` | Card borders and divider rules |
+
+[Back to Top](#table-of-contents)
+
+---
+
+<a id="5-competitive-matrix-adropx-vs-alternatives"></a>
 ## 5. Competitive Matrix: ADropX vs Alternatives
 
 | Feature / Metric | ADropX | Apple AirDrop | Quick Share (Google) | LocalSend | WhatsApp / Telegram | Google Drive / OneDrive |
@@ -190,7 +214,7 @@ The bottom dock features a mini QR thumbnail with hover glow. Clicking the thumb
 | **iOS / iPadOS Support** | Universal Web PWA | Native | None | Yes | App | App |
 | **App Required on Phone?** | **No** (Optional) | Yes (iOS only) | Yes | Yes (Mandatory) | Yes (Mandatory) | Yes (Mandatory) |
 | **Internet Required?** | **No** (100% Offline) | No | No | No | **Yes** (Double data) | **Yes** (Double data) |
-| **Transfer Speed** | **Up to 165 MB/s** | Up to 80 MB/s | Up to 60 MB/s | Up to 80 MB/s | 5 - 15 MB/s | 10 - 20 MB/s |
+| **Transfer Speed** | **Full LAN Hardware** | Up to 80 MB/s | Up to 60 MB/s | Up to 80 MB/s | 5 - 15 MB/s | 10 - 20 MB/s |
 | **File Compression** | **Zero Loss** | Zero Loss | Zero Loss | Zero Loss | **Heavy Loss** | Zero Loss |
 | **File Size Limit** | **No Limit** | No Limit | No Limit | No Limit | 2 GB limit | Cloud storage quota |
 | **Setup Launch Time** | **0.05 seconds** | Built-in | Variable | Variable | Variable | Variable |
@@ -200,8 +224,11 @@ The bottom dock features a mini QR thumbnail with hover glow. Clicking the thumb
 | **Direct 4K Streaming** | **Yes** (Range bytes) | No | No | No | Transcoded | Transcoded |
 | **Cloud Telemetry / Ads** | **Zero** | Apple telemetry | Google telemetry | Zero | Meta / Telegram | Cloud tracking |
 
+[Back to Top](#table-of-contents)
+
 ---
 
+<a id="6-official-packages-and-downloads"></a>
 ## 6. Official Packages and Downloads
 
 All binaries are built for Windows 10/11 and Android 8.0+. Download the latest verified releases from:
@@ -233,8 +260,11 @@ https://github.com/BeginnerAman/ADropX/releases/latest
 - Target: Android 8.0 through Android 15+.
 - Characteristics: Built-in viewfinder camera QR scanner, haptic feedback, background WakeLock service, and direct system download folder integration.
 
+[Back to Top](#table-of-contents)
+
 ---
 
+<a id="7-connection-methods-and-setup-guide"></a>
 ## 7. Connection Methods and Setup Guide
 
 Connecting your devices takes less than five seconds. Ensure your PC and mobile device share a common local network route through any of the following setups:
@@ -263,8 +293,11 @@ Connecting your devices takes less than five seconds. Ensure your PC and mobile 
 3. Launch ADropX on PC. The system detects the local RNDIS/USB network adapter.
 4. Scan the QR code or type the displayed IP address in your phone browser.
 
+[Back to Top](#table-of-contents)
+
 ---
 
+<a id="8-android-companion-client-vs-web-mode"></a>
 ## 8. Android Companion Client vs Web Mode
 
 ADropX provides complete flexibility: you can use the web interface without installing anything, or install the native APK for convenience.
@@ -278,8 +311,11 @@ ADropX provides complete flexibility: you can use the web interface without inst
 | **File Storage Location** | Browser download prompt | Native Android `Download/` folder |
 | **System Compatibility** | iOS, Android, macOS, Linux | Android 8.0+ |
 
+[Back to Top](#table-of-contents)
+
 ---
 
+<a id="9-smart-clipboard-and-otp-engine"></a>
 ## 9. Smart Clipboard and OTP Engine
 
 ADropX bridges the text barrier between PC and mobile devices.
@@ -297,9 +333,32 @@ The built-in parser scans clipboard text for actionable patterns:
 - Telephone Numbers: Identifies standard national and international phone numbers, providing a "Dial" button on phones.
 - Email Addresses: Identifies standard email addresses, providing a "Compose Mail" action.
 
+[Back to Top](#table-of-contents)
+
 ---
 
-## 10. Technical Architecture and Protocols
+<a id="10-desktop-keyboard-shortcuts"></a>
+## 10. Desktop Keyboard Shortcuts
+
+The desktop application includes native keyboard shortcuts for quick control:
+
+| Shortcut Key | Action Performed |
+| :--- | :--- |
+| `Esc` | Closes any active sliding drawer, modal dialog, or QR zoom overlay |
+| `Ctrl + V` | Automatically pastes clipboard text into the Shared Clipboard editor |
+| `F11` | Toggles native frameless fullscreen display mode |
+| `Ctrl + Shift + S` | Opens the Desktop Settings sliding drawer |
+| `Ctrl + Shift + D` | Opens the Connected Devices sliding drawer |
+| `Ctrl + Shift + F` | Opens the Watched Folders sliding drawer |
+| `Ctrl + Shift + H` | Opens the Transfer History sliding drawer |
+| `Ctrl + Shift + C` | Opens the Shared Clipboard sliding drawer |
+
+[Back to Top](#table-of-contents)
+
+---
+
+<a id="11-technical-architecture-and-protocols"></a>
+## 11. Technical Architecture and Protocols
 
 ADropX is built on a modern, decoupled client-server architecture:
 
@@ -313,7 +372,7 @@ ADropX is built on a modern, decoupled client-server architecture:
        ├── Tray Service: Background Pystray Icon with Notifications
        └── Filesystem Monitor: Watchdog Multi-Directory Polling Engine
        │
-  (Local WiFi / Hotspot TCP Socket Stream: 120-165 MB/s)
+  (Local WiFi / Hotspot TCP Socket Stream: Max Hardware Throughput)
        │
 [ Connected Client ]
        │
@@ -328,9 +387,36 @@ ADropX is built on a modern, decoupled client-server architecture:
 - Local Discovery: Zeroconf mDNS advertising service for automated LAN peer detection.
 - Memory Consumption: Flat 10 MB to 20 MB RAM footprint during active high-speed transfers.
 
+[Back to Top](#table-of-contents)
+
 ---
 
-## 11. Security, Privacy, and Network Isolation
+<a id="12-configuration-reference-and-settings-dictionary"></a>
+## 12. Configuration Reference and Settings Dictionary
+
+Advanced users and system administrators can customize ADropX behavior through `settings.json` or environment variables:
+
+| Configuration Key | Default Value | Description |
+| :--- | :--- | :--- |
+| `CHUNK_SIZE` | `2097152` (2 MB) | Base socket buffer size dispatched per network chunk |
+| `MAX_CHUNK_SIZE` | `4194304` (4 MB) | Maximum dynamic buffer size allowed under high WiFi throughput |
+| `MIN_CHUNK_SIZE` | `524288` (512 KB)| Minimum buffer floor for weak or congested wireless connections |
+| `ADAPTIVE_ENABLED` | `true` | Dynamically measures latency and adjusts chunk sizing |
+| `SERVER_PORT` | `8080` | Local network binding port |
+| `PIN_CODE` | `""` (Disabled) | Optional 4-digit numeric access PIN for public network security |
+| `PIN_SESSION_HOURS` | `24` | Token authorization lifetime before re-entering PIN |
+| `TRAY_ENABLED` | `true` | Enables system tray minimization on desktop window close |
+| `MINIMIZE_TO_TRAY_ON_CLOSE` | `true` | Keeps background file transfers running when window is closed |
+| `STARTUP_REGISTRY_KEY` | `ADropX` | Windows Run registry entry name |
+| `EXCLUDED_FILE_PATTERNS` | `.tmp, .crdownload, Thumbs.db, desktop.ini` | File extensions ignored during folder watch and drag-and-drop |
+| `EXCLUDED_DIR_PATTERNS` | `.git, node_modules, __pycache__, .vs` | Directory trees ignored during recursive directory traversal |
+
+[Back to Top](#table-of-contents)
+
+---
+
+<a id="13-security-privacy-and-network-isolation"></a>
+## 13. Security, Privacy, and Network Isolation
 
 ADropX adheres to strict zero-trust data privacy standards:
 
@@ -340,9 +426,12 @@ ADropX adheres to strict zero-trust data privacy standards:
 4. Public Network PIN Verification: An optional 4-digit security PIN can be activated in Settings to prevent unauthorized connections on public or shared networks.
 5. Ephemeral Sessions: Authentication tokens and temporary transfer sessions expire automatically when the application is closed.
 
+[Back to Top](#table-of-contents)
+
 ---
 
-## 12. Troubleshooting and Network Diagnostics
+<a id="14-troubleshooting-and-network-diagnostics"></a>
+## 14. Troubleshooting and Network Diagnostics
 
 ### Issue 1: Phone browser cannot load the connection page
 - Cause: The PC and phone are on different network subnets, or Windows Firewall is blocking inbound connections.
@@ -363,11 +452,14 @@ ADropX adheres to strict zero-trust data privacy standards:
 
 ### Issue 4: Slow transfer speeds (under 15 MB/s)
 - Cause: The router or hotspot is operating on the crowded 2.4 GHz WiFi frequency band.
-- Resolution: Configure your router or phone hotspot to the 5 GHz WiFi band. On 5 GHz WiFi, speeds increase up to 120+ MB/s.
+- Resolution: Configure your router or phone hotspot to the 5 GHz WiFi band. On 5 GHz WiFi, speeds operate at full wireless link speeds.
+
+[Back to Top](#table-of-contents)
 
 ---
 
-## 13. System Requirements
+<a id="15-system-requirements"></a>
+## 15. System Requirements
 
 ### Desktop Host (Personal Computer)
 - Operating System: Microsoft Windows 10 (Build 1809 or higher) or Windows 11 (64-bit architecture).
@@ -380,9 +472,12 @@ ADropX adheres to strict zero-trust data privacy standards:
 - iOS / iPadOS: iOS 13.0 or higher (Apple Safari, Google Chrome).
 - Other Devices: Any modern web browser supporting HTML5 and Web Workers.
 
+[Back to Top](#table-of-contents)
+
 ---
 
-## 14. Developer Attribution and Terms of Use
+<a id="16-developer-attribution-and-terms-of-use"></a>
+## 16. Developer Attribution and Terms of Use
 
 ADropX is created, engineered, and maintained by:
 
@@ -392,3 +487,5 @@ Repository: https://github.com/BeginnerAman/ADropX
 Official Landing Page: https://beginneraman.github.io/ADropX/
 
 Terms: ADropX is 100% free for personal, commercial, and educational use. Developed by Aman Vishwakarma.
+
+[Back to Top](#table-of-contents)
