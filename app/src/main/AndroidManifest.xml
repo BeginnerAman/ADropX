@@ -12,6 +12,9 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
+    <!-- Haptic feedback for QR code scanning -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <!-- WakeLock so large file transfers don't pause when screen turns off -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 

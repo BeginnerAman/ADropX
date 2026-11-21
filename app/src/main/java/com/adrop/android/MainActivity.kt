@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.DownloadManager
 import android.content.ContentValues
 import android.content.Context
+import android.graphics.Color
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -374,6 +375,10 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
+        // Prevent white screen flash on load/connect by anchoring dark canvas immediately
+        webView.setBackgroundColor(Color.parseColor("#0a0a1a"))
+        swipeRefresh.setBackgroundColor(Color.parseColor("#0a0a1a"))
+
         val settings = webView.settings
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
@@ -390,7 +395,7 @@ class MainActivity : AppCompatActivity() {
         settings.mediaPlaybackRequiresUserGesture = false
 
         // Identify as Native Android APK Client
-        settings.userAgentString = "${settings.userAgentString} ADropAndroid/3.2.7"
+        settings.userAgentString = "${settings.userAgentString} ADropXAndroid/3.3.0"
 
         // JavaScript Bridge for native interactions
         webView.addJavascriptInterface(object {
@@ -460,7 +465,7 @@ class MainActivity : AppCompatActivity() {
 
             @JavascriptInterface
             fun getVersion(): String {
-                return "3.2.7"
+                return "3.3.0"
             }
         }, "ADropNative")
 
@@ -601,7 +606,7 @@ class MainActivity : AppCompatActivity() {
                 conn.requestMethod = "GET"
                 conn.connectTimeout = 8000
                 conn.readTimeout = 120000
-                conn.setRequestProperty("User-Agent", "ADropAndroid/3.2.7")
+                conn.setRequestProperty("User-Agent", "ADropXAndroid/3.3.0")
                 conn.setRequestProperty("Accept-Encoding", "identity")
                 conn.doInput = true
 
@@ -836,14 +841,14 @@ class MainActivity : AppCompatActivity() {
         val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
         if (result != null) {
             if (result.contents != null) {
-                // Subtle premium haptic feedback on successful scan
+                // Crisp 50ms haptic feedback strictly on successful QR scan connect
                 try {
                     val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? android.os.Vibrator
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        vibrator?.vibrate(android.os.VibrationEffect.createOneShot(35, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                        vibrator?.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
                     } else {
                         @Suppress("DEPRECATION")
-                        vibrator?.vibrate(35)
+                        vibrator?.vibrate(50)
                     }
                 } catch (e: Exception) {}
 

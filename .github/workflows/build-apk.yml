@@ -36,28 +36,31 @@ jobs:
       - name: Prepare APK Outputs
         run: |
           mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/ADropX.apk
           cp app/build/outputs/apk/debug/app-debug.apk dist/ADrop.apk
-          cp app/build/outputs/apk/debug/app-debug.apk dist/ADrop-v3.2.0.apk
           ls -lh dist/
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ADrop-Android-APK
-          path: dist/ADrop.apk
+          name: ADropX-Android-APK
+          path: dist/ADropX.apk
           retention-days: 30
 
       - name: Publish GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete v3.2.11 --yes || true
-          gh release create v3.2.11 dist/ADrop.apk \
-            --title "ADrop Android v3.2.11" \
-            --notes "### Official ADrop Android Client (v3.2.11)
+          gh release delete v3.3.0 --yes || true
+          gh release create v3.3.0 dist/ADropX.apk dist/ADrop.apk \
+            --title "ADropX Android v3.3.0" \
+            --notes "### Official ADropX Android Client (v3.3.0)
           
+          - **Rebranded to ADropX**: Next-generation offline high-speed local file transfer.
+          - **Eliminated White Screen Flash**: Immediate dark theme canvas background initialization.
+          - **Crisp QR Scan Vibration**: Strict 50ms haptic feedback strictly when connected via QR scan.
           - **HTML5 Video Native Fullscreen**: Enabled WebChromeClient onShowCustomView & onHideCustomView with back navigation.
           - **Instant Video Rendering**: mediaPlaybackRequiresUserGesture set to false for immediate native video decoding.
-          - **Tablet Full-Height View**: Capped max-height removed; file list smoothly fills full screen without empty space.
+          - **Tablet Full-Height View**: File list smoothly fills full screen without empty space.
           - **History & Drawer Scroll Guard**: Swipe-refresh locked while browsing transfer history, preventing accidental page reloads.
           - **130dp Intentional Pull Threshold**: Pull-to-refresh requires deliberate pull from top, eliminating accidental triggers while scrolling."
