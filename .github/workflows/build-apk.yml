@@ -51,12 +51,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete v3.2.7 --yes || true
-          gh release create v3.2.7 dist/ADrop.apk \
-            --title "ADrop Android v3.2.7" \
-            --notes "### Official ADrop Android Client (v3.2.7)
+          gh release delete v3.2.9 --yes || true
+          gh release create v3.2.9 dist/ADrop.apk \
+            --title "ADrop Android v3.2.9" \
+            --notes "### Official ADrop Android Client (v3.2.9)
           
-          - **Full Wire Download Speed (35-40+ MB/s)**: Restored 128KB zero-overhead stream with THREAD_PRIORITY_MORE_FAVORABLE to eliminate all TCP window stalls and initial delays.
-          - **Clean Video Preview**: Pure distraction-free 16:9 player with no overlays or ghost circles, plus dedicated Open button.
-          - **1.5s Throttled UI Progress**: Lightweight updates preventing CPU/GPU compositor contention on mobile devices.
-          - **Zero-Blinking Live Stats**: In-place text node updates with compact 378/742 MB formatting."
+          - **Tablet Full-Height View**: Capped max-height removed; file list smoothly fills full screen without empty space.
+          - **History & Drawer Scroll Guard**: Swipe-refresh locked while browsing transfer history, preventing accidental page reloads.
+          - **130dp Intentional Pull Threshold**: Pull-to-refresh requires deliberate pull from top, eliminating accidental triggers while scrolling.
+          - **Mobile Video Auto-Play**: Seamless video playback on tap without browser placeholder artifacts."

@@ -82,7 +82,7 @@ class MainActivity : AppCompatActivity() {
     private val nativeFilePickerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        swipeRefresh.isEnabled = true
+        swipeRefresh.isEnabled = isContentAtTop
         if (result.resultCode == RESULT_OK && result.data != null) {
             val data = result.data!!
             val uris = mutableListOf<Uri>()
@@ -113,7 +113,7 @@ class MainActivity : AppCompatActivity() {
     private val filePickerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        swipeRefresh.isEnabled = true
+        swipeRefresh.isEnabled = isContentAtTop
         if (result.resultCode == RESULT_OK && result.data != null) {
             val data = result.data!!
             val uris = mutableListOf<Uri>()
@@ -176,6 +176,7 @@ class MainActivity : AppCompatActivity() {
         setupWakeLock()
 
         // Smart scroll conflict resolution: Only allow pull-to-refresh when web content is at the very top
+        swipeRefresh.setDistanceToTriggerSync((resources.displayMetrics.density * 130).toInt())
         swipeRefresh.setOnChildScrollUpCallback { _, _ ->
             !isContentAtTop || webView.scrollY > 0 || webView.canScrollVertically(-1)
         }
@@ -494,7 +495,7 @@ class MainActivity : AppCompatActivity() {
                     filePickerLauncher.launch(Intent.createChooser(intent, "Select Files to Send via ADrop"))
                 } catch (e: Exception) {
                     staticFileUploadCallback = null
-                    swipeRefresh.isEnabled = true
+                    swipeRefresh.isEnabled = isContentAtTop
                     return false
                 }
                 return true
