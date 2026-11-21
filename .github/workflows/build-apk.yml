@@ -51,12 +51,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete v3.3.0 --yes || true
-          gh release create v3.3.0 dist/ADropX.apk dist/ADrop.apk \
-            --title "ADropX Android v3.3.0" \
-            --notes "### Official ADropX Android Client (v3.3.0)
+          gh release delete v3.3.1 --yes || true
+          gh release create v3.3.1 dist/ADropX.apk dist/ADrop.apk \
+            --title "ADropX Android v3.3.1" \
+            --notes "### Official ADropX Android Client (v3.3.1)
           
           - **Rebranded to ADropX**: Next-generation offline high-speed local file transfer.
+          - **Unified Native Dialogs**: All system toasts and file pickers branded with ADropX.
           - **Eliminated White Screen Flash**: Immediate dark theme canvas background initialization.
           - **Crisp QR Scan Vibration**: Strict 50ms haptic feedback strictly when connected via QR scan.
           - **HTML5 Video Native Fullscreen**: Enabled WebChromeClient onShowCustomView & onHideCustomView with back navigation.

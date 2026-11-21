@@ -302,7 +302,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun uploadSharedFiles(uris: List<Uri>, serverBaseUrl: String) {
         val total = uris.size
-        Toast.makeText(this, "Uploading $total file(s) to ADrop PC...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Uploading $total file(s) to ADropX PC...", Toast.LENGTH_SHORT).show()
         wakeLock?.acquire(10 * 60 * 1000L /* 10 minutes */)
 
         thread {
@@ -416,7 +416,7 @@ class MainActivity : AppCompatActivity() {
                         addCategory(Intent.CATEGORY_OPENABLE)
                         putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
                     }
-                    nativeFilePickerLauncher.launch(Intent.createChooser(intent, "Select Files to Send via ADrop"))
+                    nativeFilePickerLauncher.launch(Intent.createChooser(intent, "Select Files to Send via ADropX"))
                 }
             }
 
@@ -494,7 +494,7 @@ class MainActivity : AppCompatActivity() {
                 // If connection failed, show clean retry screen with switch option
                 val displayUrl = failingUrl ?: currentConnectedUrl ?: "PC"
                 showConnectionScreen(
-                    errorMessage = "Cannot reach $displayUrl\nMake sure your PC and phone are on the same Wi-Fi / Hotspot and ADrop is open on PC."
+                    errorMessage = "Cannot reach $displayUrl\nMake sure your PC and phone are on the same Wi-Fi / Hotspot and ADropX is open on PC."
                 )
             }
         }
@@ -537,7 +537,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 try {
-                    filePickerLauncher.launch(Intent.createChooser(intent, "Select Files to Send via ADrop"))
+                    filePickerLauncher.launch(Intent.createChooser(intent, "Select Files to Send via ADropX"))
                 } catch (e: Exception) {
                     staticFileUploadCallback = null
                     swipeRefresh.isEnabled = isContentAtTop
