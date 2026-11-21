@@ -21,6 +21,7 @@ import android.os.Process
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.view.View
+import android.view.ViewGroup
 import android.webkit.*
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -63,6 +64,20 @@ class MainActivity : AppCompatActivity() {
     private val pendingShareUris = mutableListOf<Uri>()
     private var currentConnectedUrl: String? = null
     private var isContentAtTop: Boolean = true
+    private var customVideoView: View? = null
+    private var customVideoViewCallback: WebChromeClient.CustomViewCallback? = null
+
+    private fun hideCustomVideoView(): Boolean {
+        if (customVideoView != null) {
+            (window.decorView as? ViewGroup)?.removeView(customVideoView)
+            customVideoView = null
+            customVideoViewCallback?.onCustomViewHidden()
+            customVideoViewCallback = null
+            swipeRefresh.visibility = View.VISIBLE
+            return true
+        }
+        return false
+    }
 
     data class ActiveDownloadTask(
         val filename: String,
@@ -184,6 +199,9 @@ class MainActivity : AppCompatActivity() {
         // Handle Back Press natively
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                if (hideCustomVideoView()) {
+                    return
+                }
                 if (swipeRefresh.visibility == View.VISIBLE && webView.canGoBack()) {
                     webView.goBack()
                 } else if (swipeRefresh.visibility == View.VISIBLE) {
@@ -369,6 +387,7 @@ class MainActivity : AppCompatActivity() {
         settings.displayZoomControls = false
         settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         settings.cacheMode = WebSettings.LOAD_DEFAULT
+        settings.mediaPlaybackRequiresUserGesture = false
 
         // Identify as Native Android APK Client
         settings.userAgentString = "${settings.userAgentString} ADropAndroid/3.2.7"
@@ -476,6 +495,27 @@ class MainActivity : AppCompatActivity() {
         }
 
         webView.webChromeClient = object : WebChromeClient() {
+            override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+                if (customVideoView != null) {
+                    callback?.onCustomViewHidden()
+                    return
+                }
+                customVideoView = view
+                customVideoViewCallback = callback
+                swipeRefresh.visibility = View.GONE
+                (window.decorView as? ViewGroup)?.addView(
+                    view,
+                    ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                )
+            }
+
+            override fun onHideCustomView() {
+                hideCustomVideoView()
+            }
+
             override fun onShowFileChooser(
                 webView: WebView?,
                 filePathCallback: ValueCallback<Array<Uri>>?,

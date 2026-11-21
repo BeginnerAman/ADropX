@@ -51,12 +51,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete v3.2.10 --yes || true
-          gh release create v3.2.10 dist/ADrop.apk \
-            --title "ADrop Android v3.2.10" \
-            --notes "### Official ADrop Android Client (v3.2.10)
+          gh release delete v3.2.11 --yes || true
+          gh release create v3.2.11 dist/ADrop.apk \
+            --title "ADrop Android v3.2.11" \
+            --notes "### Official ADrop Android Client (v3.2.11)
           
-          - **Native Video Player Controls**: Play/pause, seek scrubber, and fullscreen controls fully functional.
+          - **HTML5 Video Native Fullscreen**: Enabled WebChromeClient onShowCustomView & onHideCustomView with back navigation.
+          - **Instant Video Rendering**: mediaPlaybackRequiresUserGesture set to false for immediate native video decoding.
           - **Tablet Full-Height View**: Capped max-height removed; file list smoothly fills full screen without empty space.
           - **History & Drawer Scroll Guard**: Swipe-refresh locked while browsing transfer history, preventing accidental page reloads.
           - **130dp Intentional Pull Threshold**: Pull-to-refresh requires deliberate pull from top, eliminating accidental triggers while scrolling."
