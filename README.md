@@ -2,7 +2,7 @@
 
 High-Speed Offline Local File Sharing System for Windows and Mobile Devices.
 
-ADropX is an open-source, zero-cloud local file transfer platform designed to move photos, 4K videos, documents, music, and complete directories between personal computers and mobile devices at maximum network speeds with zero internet consumption.
+ADropX is a free, zero-cloud offline local file transfer platform designed to move photos, 4K videos, documents, music, and complete directories between personal computers and mobile devices at maximum network speeds with zero internet consumption.
 
 ---
 
@@ -183,4 +183,4 @@ ADropX is developed and maintained by:
 **Aman Vishwakarma**  
 GitHub: https://github.com/BeginnerAman
 
-License: Distributed under the terms of the open-source MIT License. Free for personal, commercial, and educational use.
+License: Free for personal, commercial, and educational use. Developed by Aman Vishwakarma.
