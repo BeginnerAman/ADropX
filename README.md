@@ -13,17 +13,18 @@ GitHub Releases: https://github.com/BeginnerAman/ADropX/releases/latest
 
 - 1. Executive Summary
 - 2. Performance Benchmarks
-- 3. Comprehensive Feature Breakdown
-- 4. Competitive Matrix: ADropX vs Alternatives
-- 5. Official Packages and Downloads
-- 6. Connection Methods and Setup Guide
-- 7. Android Companion Client vs Web Mode
-- 8. Smart Clipboard and OTP Engine
-- 9. Technical Architecture and Protocols
-- 10. Security, Privacy, and Network Isolation
-- 11. Troubleshooting and Network Diagnostics
-- 12. System Requirements
-- 13. Developer Attribution and Terms of Use
+- 3. Core High-Speed Transfer Engine
+- 4. Windows Desktop Power Suite
+- 5. Competitive Matrix: ADropX vs Alternatives
+- 6. Official Packages and Downloads
+- 7. Connection Methods and Setup Guide
+- 8. Android Companion Client vs Web Mode
+- 9. Smart Clipboard and OTP Engine
+- 10. Technical Architecture and Protocols
+- 11. Security, Privacy, and Network Isolation
+- 12. Troubleshooting and Network Diagnostics
+- 13. System Requirements
+- 14. Developer Attribution and Terms of Use
 
 ---
 
@@ -63,58 +64,100 @@ All benchmarks were measured in real-world local environments transferring uncom
 
 ---
 
-## 3. Comprehensive Feature Breakdown
+## 3. Core High-Speed Transfer Engine
 
 ### 1. High-Throughput Socket Pipeline
 ADropX utilizes an asynchronous multi-threaded streaming pipeline built on non-blocking I/O loops. File chunks are dispatched across persistent TCP sockets with dynamic buffer allocation, enabling sustained high-speed transfers without throughput stutter.
 
-### 2. Native Hardware-Accelerated C# WPF Installer
-The Windows setup program (`ADropX-Setup.exe`) is compiled with Microsoft .NET DirectWrite hardware acceleration. It initializes in 0.05 seconds with zero white flash, operates without administrator (UAC) prompts, and installs to the user profile directory. It automatically configures Start Menu and Desktop shortcuts (including OneDrive Desktop synchronization) and provides a clean uninstaller in Windows Settings.
+### 2. In-Browser 4K Video and Audio Streaming
+ADropX implements HTTP Range Request headers (`bytes=start-end`), allowing phones and connected computers to stream 4K MKV, MP4, WebM, and FLAC media directly in the browser. Users can scrub forward and backward on the playback timeline instantly without waiting for the full file to download first.
 
-### 3. Dedicated Android Companion App (v3.3.1)
-The official native Android client (`ADropX.apk`) provides convenience features for power users:
-- Viewfinder Camera Scanner: Launches immediately into a camera viewfinder with haptic vibration upon pairing.
-- Background WakeLock Engine: Keeps CPU and WiFi chipsets awake during multi-gigabyte transfers, preventing Android from pausing transfers when the phone screen turns off.
-- System Download Folder Routing: Automatically routes saved files into the native Android public `Download/` folder.
-- Gallery Multi-Picker: Select hundreds of photos or videos simultaneously from Android storage.
+### 3. Resumable Chunk Transfers
+Network fluctuations and momentary signal drops do not require restarting file transfers from scratch. The client tracks chunk byte offsets; if a connection pauses, transferring resumes from the exact byte where it left off.
 
-### 4. Zero-Install Progressive Web App (Universal Mode)
+### 4. RAM-Safe Fixed Buffer Architecture
+Many file transfer utilities buffer entire files in system RAM before writing to disk, leading to memory exhaustion or browser crashes on large files. ADropX enforces fixed 2 MB to 4 MB streaming buffers. Memory consumption remains completely flat (under 15 MB) whether moving a 50 KB image or an 80 GB Blu-ray disk image.
+
+### 5. Batch Folder and Multi-File ZIP Creation
+Users can select individual files or entire directory trees on the desktop. The recipient can download all selected items in a single package as an uncompressed or standard ZIP archive.
+
+### 6. Zero-Install Progressive Web App (Universal Mode)
 Devices without the native companion app connect through their web browser. The transfer interface runs as an offline PWA compatible with:
 - Apple iPhone and iPad (Safari on iOS / iPadOS)
 - Android devices (Chrome, Samsung Internet, Firefox, Brave)
 - Mac, Linux, and secondary Windows PCs (Chrome, Firefox, Safari, Edge)
 
-### 5. Smart Clipboard with Automated Entity Detection
-ADropX includes an intelligent two-way clipboard synchronization engine. When text is shared between devices, the parser automatically identifies content types and provides dedicated one-tap action chips:
-- One-Time Passwords (OTPs): Detects 4-digit, 6-digit, and 8-digit verification codes and surfaces a one-tap "Copy Code" chip.
-- Web URLs: Detects links and surfaces a one-tap "Open Link" button.
-- Phone Numbers: Detects telephone numbers and surfaces a one-tap "Dial" button on mobile devices.
-- Email Addresses: Detects emails and surfaces a one-tap "Compose" button.
-
-### 6. In-Browser 4K Video and Audio Streaming
-ADropX implements HTTP Range Request headers (`bytes=start-end`), allowing phones and connected computers to stream 4K MKV, MP4, WebM, and FLAC media directly in the browser. Users can scrub forward and backward on the playback timeline instantly without waiting for the full file to download first.
-
-### 7. Resumable Chunk Transfers
-Network fluctuations and momentary signal drops do not require restarting file transfers from scratch. The client tracks chunk byte offsets; if a connection pauses, transferring resumes from the exact byte where it left off.
-
-### 8. RAM-Safe Fixed Buffer Architecture
-Many file transfer utilities buffer entire files in system RAM before writing to disk, leading to memory exhaustion or browser crashes on large files. ADropX enforces fixed 2 MB to 4 MB streaming buffers. Memory consumption remains completely flat (under 15 MB) whether moving a 50 KB image or an 80 GB Blu-ray disk image.
-
-### 9. Batch Folder and Multi-File ZIP Creation
-Users can select individual files or entire directory trees on the desktop. The recipient can download all selected items in a single package as an uncompressed or standard ZIP archive.
-
-### 10. PIN Code Access Protection
+### 7. PIN Code Access Protection
 When operating on public or shared networks (such as coffee shops, shared student dorms, or corporate offices), the desktop host can activate PIN Security in Settings. Any connecting phone or computer must enter the matching 4-digit PIN code before viewing or uploading files.
 
-### 11. Dark OLED Glassmorphic User Interface
+### 8. Dark OLED Glassmorphic User Interface
 Designed with deep `#0a0a1a` OLED black surfaces, frosted glass translucent cards, indigo `#7c83ff` accent highlights, and crisp Lucide vector icons. The interface reduces battery consumption on OLED mobile displays and prevents eye fatigue during evening use.
-
-### 12. Voluntary Support and QR Donation Integration
-ADropX is 100% free and contains zero advertisements. For users wishing to support ongoing development, the desktop dashboard provides a voluntary UPI QR code badge for direct contributions.
 
 ---
 
-## 4. Competitive Matrix: ADropX vs Alternatives
+## 4. Windows Desktop Power Suite
+
+The desktop executable (`ADropX.exe` and `ADropX-Setup.exe`) incorporates a dedicated suite of desktop features engineered specifically for Windows productivity:
+
+### 1. Multiple Watched Folders Engine
+ADropX can monitor multiple local directories simultaneously (such as your `Downloads`, `Photos`, or work folders). When files are added or modified in any watched directory, the background filesystem hooks automatically detect the changes and broadcast the new files to connected devices in real time.
+- Configuration: Open the Folders Drawer from the top bar to add or remove monitored directories.
+- Default Behavior: Automatically monitors the user Downloads directory upon initial launch.
+
+### 2. System Tray Background Mode
+When the main window close button is pressed, ADropX does not abruptly terminate ongoing transfers. Instead, it minimizes quietly into the Windows system notification tray.
+- Context Menu: Right-click the system tray icon to view active status, open the dashboard, or cleanly exit the application.
+- Notifications: Displays a balloon toast notification when minimized to confirm transfers continue in the background.
+
+### 3. Windows Explorer Right-Click Menu Integration
+Users can share files and folders directly from the Windows operating system shell.
+- How It Works: Right-click any file or directory in Windows File Explorer and select "Share with ADropX".
+- Action: The selected items are immediately staged into the ADropX transfer registry and made accessible to connected devices without manual file picking.
+
+### 4. Windows Startup Auto-Launch
+A single toggle in Desktop Settings allows ADropX to launch automatically whenever you log into Windows (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`). This ensures your local sharing hub is perpetually accessible without manual execution.
+
+### 5. Custom Frameless OLED Title Bar
+Replaces the standard Windows operating system title bar with an integrated, dark glassmorphism title bar matching the ADropX OLED design:
+- Full Draggable Region: Move the window naturally across multiple monitors.
+- Window Controls: Custom Minimize (`_`), Maximize/Restore (`□`), and Close (`✕` with red hover accent) buttons.
+- Browser Adaptive: Hides itself automatically when accessed through a web browser, rendering only inside the desktop application shell.
+
+### 6. Connected Devices Inspector
+A dedicated sliding drawer displays all active clients on your local network:
+- Details: Shows client IP addresses, device hostnames, user agent details, active connection state, and last-seen timestamps.
+- Live Top Bar Pill: Displays a real-time badge showing the exact number of actively connected devices.
+
+### 7. Recursive Directory Drag-and-Drop Traversal
+Drop complete nested folders onto the desktop dropzone. The internal recursive engine traverses all subdirectories, collects individual files, and preserves the relative directory structure for batch packaging.
+
+### 8. Wildcard and Regex File Exclusion Filter
+Prevents cluttering by automatically filtering out system artifacts, temporary caches, and development directories:
+- Excluded Patterns: Automatically ignores `.tmp`, `.crdownload`, `Thumbs.db`, `desktop.ini`, `.git`, `node_modules`, and hidden operating system files.
+
+### 9. 5 Sliding Frosted Glass Drawers
+The user interface organizes advanced capabilities into five sliding frosted glass drawers with smooth animations and backdrop blur:
+- Shared Clipboard Drawer
+- Watched Folders Drawer
+- Connected Devices Drawer
+- Transfer History Drawer
+- Desktop Settings Drawer
+
+### 10. Window State and Geometry Persistence
+The application saves its exact desktop window dimensions (width and height), screen coordinates (X and Y), and maximized state (`window_state.json`). When reopened, it restores its exact previous desktop position.
+
+### 11. Smart File Source Attribution Engine
+The server tracks which device uploaded which file (`.file_sources.json`). When a mobile phone uploads a file to the PC, the mobile interface automatically suppresses redundant "Download" buttons on the sender device while showing clear received status on the PC.
+
+### 12. Local Direct LAN APK Distribution
+The desktop dock includes a direct "Share APK" option that serves the official `ADropX.apk` binary directly to connecting mobile devices over the local network, allowing first-time phone pairing without requiring external internet downloads.
+
+### 13. Interactive Click-to-Zoom QR Dock
+The bottom dock features a mini QR thumbnail with hover glow. Clicking the thumbnail opens a high-resolution connection modal displaying the auto-detected local IP address, port, and a one-click "Copy Link" utility.
+
+---
+
+## 5. Competitive Matrix: ADropX vs Alternatives
 
 | Feature / Metric | ADropX | Apple AirDrop | Quick Share (Google) | LocalSend | WhatsApp / Telegram | Google Drive / OneDrive |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -127,13 +170,15 @@ ADropX is 100% free and contains zero advertisements. For users wishing to suppo
 | **File Compression** | **Zero Loss** | Zero Loss | Zero Loss | Zero Loss | **Heavy Loss** | Zero Loss |
 | **File Size Limit** | **No Limit** | No Limit | No Limit | No Limit | 2 GB limit | Cloud storage quota |
 | **Setup Launch Time** | **0.05 seconds** | Built-in | Variable | Variable | Variable | Variable |
+| **Watched Folders** | **Yes** (Auto-share) | No | No | No | No | Sync client |
+| **Explorer Context Menu** | **Yes** (Right-click) | No | Limited | No | No | Yes |
 | **OTP & Smart Clipboard** | **Yes** (Automated) | Basic text | Basic text | Basic text | Manual copy | Manual note |
 | **Direct 4K Streaming** | **Yes** (Range bytes) | No | No | No | Transcoded | Transcoded |
 | **Cloud Telemetry / Ads** | **Zero** | Apple telemetry | Google telemetry | Zero | Meta / Telegram | Cloud tracking |
 
 ---
 
-## 5. Official Packages and Downloads
+## 6. Official Packages and Downloads
 
 All binaries are built for Windows 10/11 and Android 8.0+. Download the latest verified releases from:
 https://github.com/BeginnerAman/ADropX/releases/latest
@@ -166,7 +211,7 @@ https://github.com/BeginnerAman/ADropX/releases/latest
 
 ---
 
-## 6. Connection Methods and Setup Guide
+## 7. Connection Methods and Setup Guide
 
 Connecting your devices takes less than five seconds. Ensure your PC and mobile device share a common local network route through any of the following setups:
 
@@ -196,7 +241,7 @@ Connecting your devices takes less than five seconds. Ensure your PC and mobile 
 
 ---
 
-## 7. Android Companion Client vs Web Mode
+## 8. Android Companion Client vs Web Mode
 
 ADropX provides complete flexibility: you can use the web interface without installing anything, or install the native APK for convenience.
 
@@ -211,7 +256,7 @@ ADropX provides complete flexibility: you can use the web interface without inst
 
 ---
 
-## 8. Smart Clipboard and OTP Engine
+## 9. Smart Clipboard and OTP Engine
 
 ADropX bridges the text barrier between PC and mobile devices.
 
@@ -230,7 +275,7 @@ The built-in parser scans clipboard text for actionable patterns:
 
 ---
 
-## 9. Technical Architecture and Protocols
+## 10. Technical Architecture and Protocols
 
 ADropX is built on a modern, decoupled client-server architecture:
 
@@ -238,9 +283,11 @@ ADropX is built on a modern, decoupled client-server architecture:
 [ Windows Desktop Host ]
        │
        ├── Native Launcher: DirectWrite C# WPF Shell (0.05s Startup)
+       ├── Desktop Shell: Frameless Microsoft Edge Chromium WebView2
        ├── Backend Engine: Python 3 with FastAPI and Asyncio Event Loop
        ├── Discovery Service: Zeroconf Multicast DNS (mDNS) Daemon
-       └── Window Manager: Frameless Microsoft Edge Chromium WebView2
+       ├── Tray Service: Background Pystray Icon with Notifications
+       └── Filesystem Monitor: Watchdog Multi-Directory Polling Engine
        │
   (Local WiFi / Hotspot TCP Socket Stream: 120-165 MB/s)
        │
@@ -259,7 +306,7 @@ ADropX is built on a modern, decoupled client-server architecture:
 
 ---
 
-## 10. Security, Privacy, and Network Isolation
+## 11. Security, Privacy, and Network Isolation
 
 ADropX adheres to strict zero-trust data privacy standards:
 
@@ -271,7 +318,7 @@ ADropX adheres to strict zero-trust data privacy standards:
 
 ---
 
-## 11. Troubleshooting and Network Diagnostics
+## 12. Troubleshooting and Network Diagnostics
 
 ### Issue 1: Phone browser cannot load the connection page
 - Cause: The PC and phone are on different network subnets, or Windows Firewall is blocking inbound connections.
@@ -296,7 +343,7 @@ ADropX adheres to strict zero-trust data privacy standards:
 
 ---
 
-## 12. System Requirements
+## 13. System Requirements
 
 ### Desktop Host (Personal Computer)
 - Operating System: Microsoft Windows 10 (Build 1809 or higher) or Windows 11 (64-bit architecture).
@@ -311,7 +358,7 @@ ADropX adheres to strict zero-trust data privacy standards:
 
 ---
 
-## 13. Developer Attribution and Terms of Use
+## 14. Developer Attribution and Terms of Use
 
 ADropX is created, engineered, and maintained by:
 
