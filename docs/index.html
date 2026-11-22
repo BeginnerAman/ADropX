@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns#">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ADropX: High-speed offline local file transfer system for Windows and Android. Move photos, 4K videos, documents, and folders over local WiFi or Hotspot with QR pairing. Zero cloud, zero cables, maximum LAN speed.">
+    <meta name="author" content="Aman Vishwakarma">
+    <meta name="theme-color" content="#0a0a1a">
+
+    <!-- Open Graph / WhatsApp / Facebook / LinkedIn -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ADropX">
+    <meta property="og:url" content="https://beginneraman.github.io/ADropX/">
+    <meta property="og:title" content="ADropX | High-Speed Offline Local File Transfer">
+    <meta property="og:description" content="Ultra-fast offline local file transfer between Windows and mobile devices. Zero internet, zero cloud servers, zero cables, maximum LAN speed.">
+    <meta property="og:image" content="https://beginneraman.github.io/ADropX/images/og-preview.jpg">
+    <meta property="og:image:secure_url" content="https://beginneraman.github.io/ADropX/images/og-preview.jpg">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="ADropX Official Banner">
+    <link rel="image_src" href="https://beginneraman.github.io/ADropX/images/og-preview.jpg">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://beginneraman.github.io/ADropX/">
+    <meta name="twitter:title" content="ADropX | High-Speed Offline Local File Transfer">
+    <meta name="twitter:description" content="Ultra-fast offline local file transfer between Windows and mobile devices. Zero internet, zero cloud servers, zero cables, maximum LAN speed.">
+    <meta name="twitter:image" content="https://beginneraman.github.io/ADropX/images/og-preview.jpg">
+    <meta name="twitter:image:alt" content="ADropX Official Preview">
+
+    <title>ADropX | High-Speed Offline Local File Transfer</title>
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    
+    <!-- Lucide Icons (Local Zero-Latency) -->
+    <script src="lucide.min.js" defer></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Background Subtle Ambient Glows -->
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav id="navbar" class="glass-nav">
+        <div class="nav-container">
+            <a href="#" class="nav-brand">
+                <img src="images/adrop-logo-nav.png" alt="ADropX Logo" class="nav-logo" width="38" height="38">
+                <span class="nav-title">ADropX</span>
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#desktop-suite">Desktop Suite</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#why-adrop">Why ADropX</a>
+                <a href="#download" class="nav-btn">Download</a>
+                <a href="https://github.com/BeginnerAman/ADropX" target="_blank" class="github-btn">
+                    <svg height="18" width="18" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                    </svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <div class="container hero-content">
+            <div class="hero-logo-wrapper">
+                <img src="images/adrop-logo-hero.png" alt="ADropX Official Logo" class="hero-logo" width="110" height="110">
+            </div>
+            <h1 class="hero-title">ADropX</h1>
+            <p class="hero-tagline">High-speed offline file transfer between PC and mobile devices. Zero internet, zero cables, maximum LAN speed.</p>
+            <div class="hero-subtitle">v3.3.1 &middot; Windows &amp; Android &middot; 100% Free &amp; Private</div>
+            
+            <div class="hero-buttons">
+                <a href="#download" class="btn btn-primary">
+                    <i data-lucide="download" class="btn-lucide-icon"></i> Get ADropX for Windows
+                </a>
+                <a href="#download" class="btn btn-emerald">
+                    <i data-lucide="smartphone" class="btn-lucide-icon"></i> Get Android Companion App
+                </a>
+            </div>
+            <p class="hero-note">Native 0.05s Instant Setup &middot; Windows 10/11 &middot; Android 8.0+ &middot; No administrator prompt required</p>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section">
+        <div class="container">
+            <h2 class="section-title">Engineered for pure speed and total privacy</h2>
+            <p class="section-subtitle">ADropX combines a high-throughput multi-threaded socket pipeline with an Apple-grade dark glassmorphic user interface.</p>
+            
+            <div class="features-grid">
+                <!-- 1. Max LAN Speed -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="zap"></i></div>
+                    <h3 class="feature-title">Maximum LAN Speed</h3>
+                    <p class="feature-desc">Transfers files directly over local WiFi hardware at maximum physical link speed. Zero internet bandwidth consumed.</p>
+                </div>
+
+                <!-- 2. QR Code Pairing -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="qr-code"></i></div>
+                    <h3 class="feature-title">Instant QR Pairing</h3>
+                    <p class="feature-desc">Point your phone camera or the ADropX companion app at the on-screen QR code to pair in under two seconds.</p>
+                </div>
+
+                <!-- 3. Smart Clipboard -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="clipboard-check"></i></div>
+                    <h3 class="feature-title">Smart Clipboard Sync</h3>
+                    <p class="feature-desc">Real-time clipboard synchronization that automatically detects OTP codes, web URLs, and phone numbers with one-tap action chips.</p>
+                </div>
+
+                <!-- 4. Media Streaming -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="play-circle"></i></div>
+                    <h3 class="feature-title">Instant Media Streaming</h3>
+                    <p class="feature-desc">Stream full 4K videos, audio tracks, and documents directly in your mobile browser with timeline scrubbing without downloading first.</p>
+                </div>
+
+                <!-- 5. Resumable Transfers -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="refresh-cw"></i></div>
+                    <h3 class="feature-title">Resumable Chunk Transfers</h3>
+                    <p class="feature-desc">Automatic chunk offset tracking. If WiFi fluctuates or a screen locks, transfers resume from the exact byte where paused.</p>
+                </div>
+
+                <!-- 6. Native High-Speed Installer -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="monitor"></i></div>
+                    <h3 class="feature-title">Native 0.05s Setup</h3>
+                    <p class="feature-desc">Hardware-accelerated C# WPF installer opens in 50 milliseconds. Creates Desktop and Start Menu shortcuts without admin prompts.</p>
+                </div>
+
+                <!-- 7. Native Android Companion Client -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="smartphone"></i></div>
+                    <h3 class="feature-title">Android Companion App</h3>
+                    <p class="feature-desc">Native APK with built-in camera QR scanner, haptic feedback, background WakeLock, and direct system Download folder integration.</p>
+                </div>
+
+                <!-- 8. RAM-Safe Architecture -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="cpu"></i></div>
+                    <h3 class="feature-title">RAM-Safe Pipeline</h3>
+                    <p class="feature-desc">Flat 2-4 MB memory consumption. Streams files in fixed buffer pipelines, tested with 50 GB+ videos without crashing.</p>
+                </div>
+
+                <!-- 9. Batch ZIP Archive -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="folder-archive"></i></div>
+                    <h3 class="feature-title">Batch Folder Download</h3>
+                    <p class="feature-desc">Select dozens of files or complete directory hierarchies on PC. Download everything in a single click as a ZIP archive.</p>
+                </div>
+
+                <!-- 10. PIN Security -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="lock"></i></div>
+                    <h3 class="feature-title">PIN Code Security</h3>
+                    <p class="feature-desc">Optional 4-digit PIN verification layer for public WiFi networks such as cafes, libraries, and shared office spaces.</p>
+                </div>
+
+                <!-- 11. Dark OLED Glassmorphism -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="sparkles"></i></div>
+                    <h3 class="feature-title">Dark OLED Glass Interface</h3>
+                    <p class="feature-desc">Crafted with pitch-black OLED surfaces, translucent frosted glass cards, and vectorized Lucide icons for zero eye strain.</p>
+                </div>
+
+                <!-- 12. 100% Private and Local -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="shield-check"></i></div>
+                    <h3 class="feature-title">100% Private &amp; Local</h3>
+                    <p class="feature-desc">Zero cloud servers, zero analytics trackers, and zero telemetry. All file streams remain strictly inside your room.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Windows Desktop Power Suite Section -->
+    <section id="desktop-suite" class="section">
+        <div class="container">
+            <h2 class="section-title">Windows Desktop Power Suite</h2>
+            <p class="section-subtitle">Engineered specifically for personal computers, power workstations, and seamless local automation.</p>
+            
+            <div class="features-grid">
+                <!-- 1. Multiple Watched Folders -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="folder-sync"></i></div>
+                    <h3 class="feature-title">Multiple Watched Folders</h3>
+                    <p class="feature-desc">Monitor local folders such as Downloads or Projects. Files dropped into watched directories are automatically broadcast and shared to connected mobile devices.</p>
+                </div>
+
+                <!-- 2. System Tray Integration -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="minimize-2"></i></div>
+                    <h3 class="feature-title">System Tray Background Mode</h3>
+                    <p class="feature-desc">Closing the application window keeps ADropX running quietly in the Windows notification tray, ensuring large background transfers continue uninterrupted.</p>
+                </div>
+
+                <!-- 3. Windows Explorer Context Menu -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="mouse-pointer-click"></i></div>
+                    <h3 class="feature-title">Windows Explorer Right-Click</h3>
+                    <p class="feature-desc">Right-click any file or directory in Windows File Explorer and select "Share with ADropX" to stage and distribute files instantly.</p>
+                </div>
+
+                <!-- 4. Windows Startup Auto-Launch -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="power"></i></div>
+                    <h3 class="feature-title">Windows Startup Auto-Launch</h3>
+                    <p class="feature-desc">One-click toggle in Desktop Settings registers ADropX to launch automatically upon user login, ensuring your transfer node is always ready.</p>
+                </div>
+
+                <!-- 5. Custom Frameless Title Bar -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="layout"></i></div>
+                    <h3 class="feature-title">Frameless OLED Title Bar</h3>
+                    <p class="feature-desc">Integrated dark glassmorphism title bar featuring a draggable window region, custom minimize, maximize, and smooth red-accent close controls.</p>
+                </div>
+
+                <!-- 6. Connected Devices Inspector -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="network"></i></div>
+                    <h3 class="feature-title">Connected Devices Inspector</h3>
+                    <p class="feature-desc">Real-time sliding drawer displaying client IP addresses, device hostnames, active transfer sessions, and a live counter pill in the top bar.</p>
+                </div>
+
+                <!-- 7. Recursive Directory Drag & Drop -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="folder-tree"></i></div>
+                    <h3 class="feature-title">Recursive Directory Drop</h3>
+                    <p class="feature-desc">Drag complete nested folders onto the dropzone. ADropX traverses the entire directory hierarchy and stages all child files preserving directory structure.</p>
+                </div>
+
+                <!-- 8. Wildcard & Regex File Exclusion -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="filter"></i></div>
+                    <h3 class="feature-title">Smart Exclusion Filtering</h3>
+                    <p class="feature-desc">Automatically ignores temporary OS caches, hidden files, and development directories such as .tmp, .git, node_modules, desktop.ini, and Thumbs.db.</p>
+                </div>
+
+                <!-- 9. 5 Sliding Frosted Glass Drawers -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="panel-right"></i></div>
+                    <h3 class="feature-title">Sliding Glass Drawers</h3>
+                    <p class="feature-desc">Five sliding panels (Clipboard, Watched Folders, Devices, Transfer History, Desktop Settings) with frosted glass backdrop blur and smooth animation.</p>
+                </div>
+
+                <!-- 10. Window Geometry Memory -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="maximize"></i></div>
+                    <h3 class="feature-title">Window State Memory</h3>
+                    <p class="feature-desc">Automatically remembers exact window dimensions, desktop coordinates, and maximized state across reboots without resetting.</p>
+                </div>
+
+                <!-- 11. Smart File Source Attribution -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="arrow-left-right"></i></div>
+                    <h3 class="feature-title">Smart Source Attribution</h3>
+                    <p class="feature-desc">Intelligently identifies which device uploaded each file, automatically suppressing redundant download actions on the originating mobile sender.</p>
+                </div>
+
+                <!-- 12. Direct LAN APK Distribution -->
+                <div class="feature-card glass-panel">
+                    <div class="feature-icon"><i data-lucide="share-2"></i></div>
+                    <h3 class="feature-title">Direct LAN APK Distribution</h3>
+                    <p class="feature-desc">Distribute the official Android companion APK directly from your desktop dock to mobile devices over local WiFi with zero external internet required.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="section">
+        <div class="container">
+            <h2 class="section-title">How it works</h2>
+            <p class="section-subtitle">No accounts, no phone numbers, no pairing codes. Connect in three simple steps.</p>
+
+            <!-- Connection Prerequisite -->
+            <div class="connection-prereq glass-panel">
+                <div class="prereq-header">
+                    <i data-lucide="wifi" class="prereq-icon"></i>
+                    <div>
+                        <h3 class="prereq-title">Step 1: Connect both devices to the same local network</h3>
+                        <p class="prereq-desc">Your PC and mobile device must share the same local network path. Choose any method below:</p>
+                    </div>
+                </div>
+                <div class="prereq-methods">
+                    <div class="prereq-method">
+                        <i data-lucide="router" class="method-icon"></i>
+                        <span class="method-name">WiFi Router</span>
+                        <span class="method-detail">Both devices connected to same home or office WiFi</span>
+                    </div>
+                    <div class="prereq-method">
+                        <i data-lucide="smartphone" class="method-icon"></i>
+                        <span class="method-name">Mobile Hotspot</span>
+                        <span class="method-detail">Turn on phone hotspot, connect PC to it (No data pack needed)</span>
+                    </div>
+                    <div class="prereq-method">
+                        <i data-lucide="cable" class="method-icon"></i>
+                        <span class="method-name">USB Tethering</span>
+                        <span class="method-detail">Connect phone to PC with USB cable and enable USB Tethering</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="steps-container">
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Launch ADropX on PC</h3>
+                    <p class="step-desc">Open ADropX on your computer. It launches in 0.05 seconds and displays your unique connection QR code.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Scan QR Code</h3>
+                    <p class="step-desc">Open your phone camera or the ADropX companion app, point at the screen, and connect in one second.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Transfer Instantly</h3>
+                    <p class="step-desc">Drag and drop files, sync clipboard text, or stream 4K videos. Everything transfers at maximum hardware speed.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why ADropX Section -->
+    <section id="why-adrop" class="section">
+        <div class="container">
+            <h2 class="section-title">Why choose ADropX?</h2>
+            <p class="section-subtitle">Direct peer-to-peer performance compared to traditional transfer methods.</p>
+            
+            <div class="stats-grid">
+                <div class="stat-card glass-panel">
+                    <div class="stat-icon"><i data-lucide="gauge"></i></div>
+                    <div class="stat-value">Max Speed</div>
+                    <div class="stat-label">Hardware Bandwidth</div>
+                    <p class="stat-desc">Full hardware network bandwidth with zero throttling. Speed is limited only by your WiFi router and storage drive.</p>
+                </div>
+                <div class="stat-card glass-panel">
+                    <div class="stat-icon"><i data-lucide="infinity"></i></div>
+                    <div class="stat-value">No Limit</div>
+                    <div class="stat-label">File Size Capacity</div>
+                    <p class="stat-desc">Transfer files of any size without restrictions. Tested with 50 GB+ uncompressed video archives.</p>
+                </div>
+                <div class="stat-card glass-panel">
+                    <div class="stat-icon"><i data-lucide="timer"></i></div>
+                    <div class="stat-value">0.05s</div>
+                    <div class="stat-label">Installer Launch Time</div>
+                    <p class="stat-desc">Native hardware-accelerated C# WPF installer starts in 50 milliseconds with zero white flash.</p>
+                </div>
+                <div class="stat-card glass-panel">
+                    <div class="stat-icon"><i data-lucide="globe"></i></div>
+                    <div class="stat-value">100% Offline</div>
+                    <div class="stat-label">Zero Internet Consumed</div>
+                    <p class="stat-desc">Works completely over local WiFi, Hotspot, or USB. Zero bytes ever leave your local network.</p>
+                </div>
+                <div class="stat-card glass-panel">
+                    <div class="stat-icon"><i data-lucide="app-window"></i></div>
+                    <div class="stat-value">0 Installs</div>
+                    <div class="stat-label">Universal Web Mode</div>
+                    <p class="stat-desc">Works in any mobile browser on iOS, iPadOS, and Android. Companion APK is purely optional.</p>
+                </div>
+                <div class="stat-card glass-panel">
+                    <div class="stat-icon"><i data-lucide="shield"></i></div>
+                    <div class="stat-value">Zero Trackers</div>
+                    <div class="stat-label">Total Privacy</div>
+                    <p class="stat-desc">No account registration, no analytics telemetry, and no external tracking. Clean, free, and private software.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section (Spacious 2x2 Grid) -->
+    <section id="download" class="section">
+        <div class="container">
+            <h2 class="section-title">Choose your download</h2>
+            <p class="section-subtitle">Official binaries for Windows and Android. Free for personal and commercial use.</p>
+            
+            <div class="download-grid">
+                <!-- 1. Windows Installer (Featured) -->
+                <div class="download-card glass-panel featured">
+                    <div class="card-top">
+                        <div class="download-header">
+                            <div class="download-header-left">
+                                <div class="download-type-icon">
+                                    <i data-lucide="download"></i>
+                                </div>
+                                <h3 class="download-title">Windows Installer</h3>
+                            </div>
+                            <span class="badge badge-recommended">Recommended</span>
+                        </div>
+                        <div class="spec-tags">
+                            <span class="spec-tag"><strong>File:</strong> ADropX-Setup.exe</span>
+                            <span class="spec-tag"><strong>Size:</strong> 44.5 MB</span>
+                            <span class="spec-tag"><strong>Speed:</strong> 0.05s Instant</span>
+                            <span class="spec-tag"><strong>Access:</strong> User Mode (No UAC)</span>
+                        </div>
+                        <p class="download-desc">The recommended package for personal computers. High-speed native setup that automatically configures Start Menu and Desktop shortcuts (including OneDrive Desktop redirection) and adds a clean uninstaller in Windows Settings.</p>
+                    </div>
+                    <div class="card-action">
+                        <a href="https://github.com/BeginnerAman/ADropX/releases/download/v3.3.1/ADropX-Setup.exe" class="btn btn-primary btn-full">
+                            <i data-lucide="download" class="btn-lucide-icon"></i> Download Windows Installer (.exe)
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 2. Standalone Binary -->
+                <div class="download-card glass-panel">
+                    <div class="card-top">
+                        <div class="download-header">
+                            <div class="download-header-left">
+                                <div class="download-type-icon">
+                                    <i data-lucide="play"></i>
+                                </div>
+                                <h3 class="download-title">Standalone Binary</h3>
+                            </div>
+                            <span class="badge badge-neutral">Single File</span>
+                        </div>
+                        <div class="spec-tags">
+                            <span class="spec-tag"><strong>File:</strong> ADropX.exe</span>
+                            <span class="spec-tag"><strong>Size:</strong> 43.9 MB</span>
+                            <span class="spec-tag"><strong>Format:</strong> Standalone EXE</span>
+                            <span class="spec-tag"><strong>Access:</strong> Zero Setup</span>
+                        </div>
+                        <p class="download-desc">A self-contained single executable file with bytecode optimization and protected assets. Run directly from any folder or desktop without installation. Ideal for users who want zero system modifications.</p>
+                    </div>
+                    <div class="card-action">
+                        <a href="https://github.com/BeginnerAman/ADropX/releases/download/v3.3.1/ADropX.exe" class="btn btn-secondary btn-full">
+                            <i data-lucide="play" class="btn-lucide-icon"></i> Download Standalone (.exe)
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 3. Portable Archive -->
+                <div class="download-card glass-panel">
+                    <div class="card-top">
+                        <div class="download-header">
+                            <div class="download-header-left">
+                                <div class="download-type-icon">
+                                    <i data-lucide="archive"></i>
+                                </div>
+                                <h3 class="download-title">Portable Archive</h3>
+                            </div>
+                            <span class="badge badge-neutral">Zero Install</span>
+                        </div>
+                        <div class="spec-tags">
+                            <span class="spec-tag"><strong>File:</strong> ADropX-Portable.zip</span>
+                            <span class="spec-tag"><strong>Size:</strong> 44.1 MB</span>
+                            <span class="spec-tag"><strong>Format:</strong> ZIP Package</span>
+                            <span class="spec-tag"><strong>Storage:</strong> USB Ready</span>
+                        </div>
+                        <p class="download-desc">Pre-extracted portable archive. Extract to a USB thumb drive, external SSD, or folder and launch immediately. Leaves zero registry traces on the host computer, making it perfect for office or restricted computers.</p>
+                    </div>
+                    <div class="card-action">
+                        <a href="https://github.com/BeginnerAman/ADropX/releases/download/v3.3.1/ADropX-Portable.zip" class="btn btn-secondary btn-full">
+                            <i data-lucide="archive" class="btn-lucide-icon"></i> Download Portable (.zip)
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 4. Android Companion App -->
+                <div class="download-card glass-panel android">
+                    <div class="card-top">
+                        <div class="download-header">
+                            <div class="download-header-left">
+                                <div class="download-type-icon">
+                                    <i data-lucide="smartphone"></i>
+                                </div>
+                                <h3 class="download-title">Android Companion App</h3>
+                            </div>
+                            <span class="badge badge-companion">Companion APK</span>
+                        </div>
+                        <div class="spec-tags">
+                            <span class="spec-tag"><strong>File:</strong> ADropX.apk</span>
+                            <span class="spec-tag"><strong>Size:</strong> 7.3 MB</span>
+                            <span class="spec-tag"><strong>System:</strong> Android 8.0+</span>
+                            <span class="spec-tag"><strong>Scanner:</strong> Camera QR Viewfinder</span>
+                        </div>
+                        <p class="download-desc">The official native Android client. Features a built-in camera QR scanner with haptic vibration, background transfer WakeLock so transfers do not stop when your screen turns off, and direct system Download folder integration.</p>
+                    </div>
+                    <div class="card-action">
+                        <a href="https://github.com/BeginnerAman/ADropX/releases/download/v3.3.1/ADropX.apk" class="btn btn-emerald btn-full">
+                            <i data-lucide="smartphone" class="btn-lucide-icon"></i> Download Android App (.apk)
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="footer-left">
+                <img src="images/adrop-logo-nav.png" alt="ADropX Logo" class="footer-logo" width="38" height="38">
+                <div class="footer-info">
+                    <strong>ADropX v3.3.1</strong>
+                    <span>100% Free &amp; Private &middot; High-Speed Local File Transfer</span>
+                </div>
+            </div>
+            <div class="footer-right">
+                <p>Developed by Aman Vishwakarma</p>
+                <a href="https://github.com/BeginnerAman/ADropX" target="_blank" class="footer-link">GitHub Repository</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Animations -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Lucide Icons
+            lucide.createIcons();
+
+            // Navbar scroll effect
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 40) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+            
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
