@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'app/**'
+      - 'build.gradle'
+      - 'gradle.properties'
+      - 'settings.gradle'
+      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 permissions:
@@ -51,17 +57,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete v3.3.1 --yes || true
-          gh release create v3.3.1 dist/ADropX.apk dist/ADrop.apk \
-            --title "ADropX Android v3.3.1" \
-            --notes "### Official ADropX Android Client (v3.3.1)
-          
-          - **Rebranded to ADropX**: Next-generation offline high-speed local file transfer.
-          - **Unified Native Dialogs**: All system toasts and file pickers branded with ADropX.
-          - **Eliminated White Screen Flash**: Immediate dark theme canvas background initialization.
-          - **Crisp QR Scan Vibration**: Strict 50ms haptic feedback strictly when connected via QR scan.
-          - **HTML5 Video Native Fullscreen**: Enabled WebChromeClient onShowCustomView & onHideCustomView with back navigation.
-          - **Instant Video Rendering**: mediaPlaybackRequiresUserGesture set to false for immediate native video decoding.
-          - **Tablet Full-Height View**: File list smoothly fills full screen without empty space.
-          - **History & Drawer Scroll Guard**: Swipe-refresh locked while browsing transfer history, preventing accidental page reloads.
-          - **130dp Intentional Pull Threshold**: Pull-to-refresh requires deliberate pull from top, eliminating accidental triggers while scrolling."
+          gh release upload v3.3.1 dist/ADropX.apk dist/ADrop.apk --clobber || gh release create v3.3.1 dist/ADropX.apk dist/ADrop.apk \
+            --title "ADropX v3.3.1 - High-Speed Offline File Transfer (Windows & Android)" \
+            --notes "Official cross-platform release for Windows and Android."
