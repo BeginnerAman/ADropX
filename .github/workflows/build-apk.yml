@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - test-apk-resume
   workflow_dispatch:
 
 permissions:
@@ -47,7 +48,8 @@ jobs:
           path: dist/ADropX.apk
           retention-days: 30
 
-      - name: Publish GitHub Release
+      - name: Publish Official Release (Main Branch)
+        if: github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -65,3 +67,19 @@ jobs:
           - **Tablet Full-Height View**: File list smoothly fills full screen without empty space.
           - **History & Drawer Scroll Guard**: Swipe-refresh locked while browsing transfer history, preventing accidental page reloads.
           - **130dp Intentional Pull Threshold**: Pull-to-refresh requires deliberate pull from top, eliminating accidental triggers while scrolling."
+
+      - name: Publish Test Release (Test Branches)
+        if: github.ref != 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete v3.3.2-test --yes || true
+          gh release create v3.3.2-test dist/ADropX.apk dist/ADrop.apk \
+            --title "ADropX Android v3.3.2-test (Resume & Progress Test)" \
+            --prerelease \
+            --notes "### ADropX Android v3.3.2 Test Build
+
+          - **Native Upload Resume**: Checks server /upload-offset before upload and resumes partial files via /upload/resume.
+          - **Real-Time Upload Progress**: Live animated progress bar, speed (MB/s), percentage, and ETA directly on screen.
+          - **High-Performance Streaming**: 128 KB socket buffer with low-latency WifiLock for 40-50+ MB/s transfers.
+          - **Auto-Resume on Disconnect**: Pauses gracefully when Wi-Fi cuts and automatically resumes from saved offset upon reconnection."

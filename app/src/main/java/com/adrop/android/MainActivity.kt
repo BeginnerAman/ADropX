@@ -39,10 +39,12 @@ import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.io.InputStream
 import java.io.InterruptedIOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -300,49 +302,251 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun fetchUploadOffset(serverBaseUrl: String, filename: String): Pair<Long, String?> {
+        try {
+            val encoded = URLEncoder.encode(filename, "UTF-8").replace("+", "%20")
+            val endpoint = if (serverBaseUrl.endsWith("/")) "${serverBaseUrl}upload-offset?filename=$encoded" else "$serverBaseUrl/upload-offset?filename=$encoded"
+            val url = URL(endpoint)
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "GET"
+            conn.connectTimeout = 4000
+            conn.readTimeout = 4000
+            if (conn.responseCode in 200..299) {
+                val responseText = conn.inputStream.bufferedReader().use { it.readText() }
+                val json = JSONObject(responseText)
+                val offset = json.optLong("offset", 0L)
+                val transferId = if (json.has("transfer_id") && !json.isNull("transfer_id")) json.optString("transfer_id") else null
+                return Pair(offset, transferId)
+            }
+        } catch (e: Exception) {}
+        return Pair(0L, null)
+    }
+
+    private fun safeSkip(stream: InputStream, bytesToSkip: Long): Long {
+        var remaining = bytesToSkip
+        val buffer = ByteArray(8192)
+        while (remaining > 0) {
+            val skipped = stream.skip(remaining)
+            if (skipped > 0) {
+                remaining -= skipped
+            } else {
+                val read = stream.read(buffer, 0, minOf(remaining, buffer.size.toLong()).toInt())
+                if (read == -1) break
+                remaining -= read
+            }
+        }
+        return bytesToSkip - remaining
+    }
+
+    private fun getFileSize(uri: Uri): Long {
+        var size = -1L
+        if (uri.scheme == "content") {
+            try {
+                contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+                        if (sizeIndex != -1 && !cursor.isNull(sizeIndex)) {
+                            size = cursor.getLong(sizeIndex)
+                        }
+                    }
+                }
+            } catch (e: Exception) {}
+            if (size <= 0) {
+                try {
+                    contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
+                        size = pfd.statSize
+                    }
+                } catch (e: Exception) {}
+            }
+        } else if (uri.scheme == "file") {
+            try {
+                val path = uri.path
+                if (path != null) {
+                    val f = File(path)
+                    if (f.exists()) size = f.length()
+                }
+            } catch (e: Exception) {}
+        }
+        return size
+    }
+
     private fun uploadSharedFiles(uris: List<Uri>, serverBaseUrl: String) {
         val total = uris.size
         Toast.makeText(this, "Uploading $total file(s) to ADropX PC...", Toast.LENGTH_SHORT).show()
-        wakeLock?.acquire(10 * 60 * 1000L /* 10 minutes */)
+        wakeLock?.acquire(30 * 60 * 1000L /* 30 minutes */)
+
+        val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+        val wifiLock = wifiManager?.createWifiLock(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                WifiManager.WIFI_MODE_FULL_LOW_LATENCY
+            else
+                WifiManager.WIFI_MODE_FULL_HIGH_PERF,
+            "ADrop:HighSpeedUpload"
+        )
+        wifiLock?.acquire()
 
         thread {
+            try {
+                Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE)
+            } catch (e: Exception) {}
+
             var successCount = 0
             for (uri in uris) {
                 val filename = getFileName(uri) ?: "shared_${System.currentTimeMillis()}"
-                try {
-                    val stream: InputStream? = contentResolver.openInputStream(uri)
-                    if (stream != null) {
-                        val endpoint = if (serverBaseUrl.endsWith("/")) "${serverBaseUrl}upload/raw" else "$serverBaseUrl/upload/raw"
+                val fileSize = getFileSize(uri)
+                val qFilename = JSONObject.quote(filename)
+
+                var attempt = 0
+                val maxAttempts = 5
+                var fileSuccess = false
+                var bytesUploaded = 0L
+
+                while (attempt < maxAttempts && !fileSuccess) {
+                    var conn: HttpURLConnection? = null
+                    var stream: InputStream? = null
+                    try {
+                        val (serverOffset, resumeTransferId) = fetchUploadOffset(serverBaseUrl, filename)
+                        val offset = if (fileSize > 0 && serverOffset >= fileSize) {
+                            fileSize
+                        } else {
+                            serverOffset
+                        }
+
+                        if (fileSize > 0 && offset >= fileSize) {
+                            fileSuccess = true
+                            successCount++
+                            runOnUiThread {
+                                val completeJs = "window.ADropUploadTracker && window.ADropUploadTracker.onComplete($qFilename, $fileSize, '0.0');"
+                                webView.evaluateJavascript(completeJs, null)
+                            }
+                            break
+                        }
+
+                        val isResuming = offset > 0
+                        val endpoint = if (isResuming) {
+                            if (serverBaseUrl.endsWith("/")) "${serverBaseUrl}upload/resume" else "$serverBaseUrl/upload/resume"
+                        } else {
+                            if (serverBaseUrl.endsWith("/")) "${serverBaseUrl}upload/raw" else "$serverBaseUrl/upload/raw"
+                        }
+
                         val url = URL(endpoint)
-                        val conn = url.openConnection() as HttpURLConnection
+                        conn = url.openConnection() as HttpURLConnection
                         conn.requestMethod = "POST"
                         conn.doOutput = true
                         conn.connectTimeout = 8000
-                        conn.readTimeout = 60000
+                        conn.readTimeout = 120000
                         conn.setRequestProperty("X-Filename", filename)
                         conn.setRequestProperty("X-Device-Type", "mobile")
-                        conn.setChunkedStreamingMode(65536)
-
-                        stream.use { input ->
-                            conn.outputStream.use { output ->
-                                input.copyTo(output)
+                        if (isResuming) {
+                            conn.setRequestProperty("X-Upload-Offset", offset.toString())
+                            if (!resumeTransferId.isNullOrEmpty()) {
+                                conn.setRequestProperty("X-Transfer-Id", resumeTransferId)
                             }
+                        }
+                        conn.setChunkedStreamingMode(131072) // 128 KB high-speed socket buffer
+
+                        stream = contentResolver.openInputStream(uri)
+                        if (stream == null) {
+                            throw IOException("Unable to open input stream for $filename")
+                        }
+
+                        if (isResuming) {
+                            safeSkip(stream, offset)
+                        }
+
+                        runOnUiThread {
+                            val startJs = "window.ADropUploadTracker && window.ADropUploadTracker.onStart($qFilename, $fileSize, $isResuming, $offset);"
+                            webView.evaluateJavascript(startJs, null)
+                        }
+
+                        bytesUploaded = offset
+                        var lastReportTime = System.currentTimeMillis()
+                        var lastReportBytes = bytesUploaded
+                        val startTime = System.currentTimeMillis()
+                        val speeds = mutableListOf<Double>()
+
+                        val buffer = ByteArray(131072)
+                        conn.outputStream.use { output ->
+                            var read: Int
+                            while (stream.read(buffer).also { read = it } != -1) {
+                                output.write(buffer, 0, read)
+                                bytesUploaded += read
+
+                                val now = System.currentTimeMillis()
+                                val dt = (now - lastReportTime) / 1000.0
+                                if (dt >= 0.15) {
+                                    val bytesDelta = bytesUploaded - lastReportBytes
+                                    val currentSpeed = (bytesDelta / (1024.0 * 1024.0)) / dt
+                                    speeds.add(currentSpeed)
+                                    if (speeds.size > 5) speeds.removeAt(0)
+                                    val avgSpeed = speeds.average()
+
+                                    val percent = if (fileSize > 0) ((bytesUploaded.toDouble() / fileSize) * 100.0).coerceIn(0.0, 100.0) else 0.0
+                                    val remainingBytes = if (fileSize > 0) (fileSize - bytesUploaded).coerceAtLeast(0) else 0L
+                                    val eta = if (avgSpeed > 0.05 && fileSize > 0) (remainingBytes / (avgSpeed * 1024.0 * 1024.0)).toLong() else 0L
+
+                                    lastReportTime = now
+                                    lastReportBytes = bytesUploaded
+
+                                    val speedStr = String.format(Locale.US, "%.1f", avgSpeed)
+                                    val percentInt = percent.toInt()
+
+                                    runOnUiThread {
+                                        val progressJs = "window.ADropUploadTracker && window.ADropUploadTracker.onProgress($qFilename, $bytesUploaded, $fileSize, $percentInt, '$speedStr', $eta);"
+                                        webView.evaluateJavascript(progressJs, null)
+                                    }
+                                }
+                            }
+                            output.flush()
                         }
 
                         if (conn.responseCode in 200..299) {
+                            fileSuccess = true
                             successCount++
+                            val totalTime = (System.currentTimeMillis() - startTime) / 1000.0
+                            val avgSpeed = if (totalTime > 0) ((bytesUploaded - offset) / (1024.0 * 1024.0)) / totalTime else 0.0
+                            val avgStr = String.format(Locale.US, "%.1f", avgSpeed)
+                            runOnUiThread {
+                                val completeJs = "window.ADropUploadTracker && window.ADropUploadTracker.onComplete($qFilename, $fileSize, '$avgStr');"
+                                webView.evaluateJavascript(completeJs, null)
+                            }
+                        } else {
+                            throw IOException("Server returned HTTP ${conn.responseCode}")
                         }
-                        conn.disconnect()
+                    } catch (e: Exception) {
+                        attempt++
+                        if (attempt < maxAttempts) {
+                            val qErr = JSONObject.quote("Connection interrupted · Auto-resuming (${attempt}/$maxAttempts)...")
+                            runOnUiThread {
+                                val pauseJs = "window.ADropUploadTracker && window.ADropUploadTracker.onPaused($qFilename, $bytesUploaded, $fileSize, $qErr);"
+                                webView.evaluateJavascript(pauseJs, null)
+                            }
+                            try {
+                                Thread.sleep(1500L * attempt)
+                            } catch (ie: InterruptedException) {
+                                break
+                            }
+                        } else {
+                            val qErr = JSONObject.quote(e.message ?: "Upload failed")
+                            runOnUiThread {
+                                val errorJs = "window.ADropUploadTracker && window.ADropUploadTracker.onError($qFilename, $qErr);"
+                                webView.evaluateJavascript(errorJs, null)
+                            }
+                        }
+                    } finally {
+                        try { stream?.close() } catch (ignored: Exception) {}
+                        try { conn?.disconnect() } catch (ignored: Exception) {}
                     }
-                } catch (e: Exception) {
-                    // Skip or retry next
                 }
             }
+
+            try {
+                if (wifiLock?.isHeld == true) wifiLock.release()
+            } catch (e: Exception) {}
 
             runOnUiThread {
                 if (successCount > 0) {
                     Toast.makeText(this@MainActivity, "$successCount file(s) shared successfully!", Toast.LENGTH_SHORT).show()
-                    webView.reload()
                 } else {
                     Toast.makeText(this@MainActivity, "Failed to share files. Check PC connection.", Toast.LENGTH_LONG).show()
                 }
