@@ -724,6 +724,14 @@ class MainActivity : AppCompatActivity() {
             }
 
             @JavascriptInterface
+            fun isFileDownloaded(filename: String): Boolean {
+                if (completedDownloads.containsKey(filename)) return true
+                val targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val targetFile = File(targetDir, filename)
+                return targetFile.exists() && targetFile.length() > 0
+            }
+
+            @JavascriptInterface
             fun openDownloadsFolder() {
                 runOnUiThread {
                     try {
@@ -883,7 +891,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun startHighSpeedDownload(downloadUrl: String, filename: String, mimeTypeHint: String? = null) {
+    private fun startHighSpeedDownload(
+        downloadUrl: String,
+        filename: String,
+        mimeTypeHint: String? = null,
+        autoInstallAfter: Boolean = false
+    ) {
         if (activeDownloadTasks.containsKey(filename)) {
             Toast.makeText(this, "Download already in progress for $filename", Toast.LENGTH_SHORT).show()
             return
@@ -1103,6 +1116,9 @@ class MainActivity : AppCompatActivity() {
                             "$filename ready! Tap in list to Install.",
                             Toast.LENGTH_LONG
                         ).show()
+                        if (autoInstallAfter) {
+                            triggerInstallApk(filename)
+                        }
                     } else {
                         Toast.makeText(
                             this@MainActivity,
@@ -1127,7 +1143,7 @@ class MainActivity : AppCompatActivity() {
                 if (apkUri == null) {
                     val targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                     val targetFile = File(targetDir, filename)
-                    if (targetFile.exists()) {
+                    if (targetFile.exists() && targetFile.length() > 0) {
                         apkUri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", targetFile)
                     }
                 }
@@ -1140,7 +1156,11 @@ class MainActivity : AppCompatActivity() {
                     }
                     startActivity(installIntent)
                 } else {
-                    Toast.makeText(this, "File not downloaded yet. Please tap Download first.", Toast.LENGTH_SHORT).show()
+                    // Smart fallback: If user clicked install but file isn't on phone, trigger high-speed download!
+                    val serverBase = currentConnectedUrl ?: prefs.getString(KEY_LAST_URL, "http://127.0.0.1:8080") ?: "http://127.0.0.1:8080"
+                    val downloadUrl = if (serverBase.endsWith("/")) "${serverBase}download/${Uri.encode(filename)}" else "$serverBase/download/${Uri.encode(filename)}"
+                    Toast.makeText(this, "Downloading $filename to install...", Toast.LENGTH_SHORT).show()
+                    startHighSpeedDownload(downloadUrl, filename, mimeTypeHint = "application/vnd.android.package-archive", autoInstallAfter = true)
                 }
             } catch (e: Exception) {
                 Toast.makeText(this, "Could not open installer: ${e.message}", Toast.LENGTH_LONG).show()
