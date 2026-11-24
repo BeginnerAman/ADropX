@@ -38,6 +38,7 @@ import com.google.zxing.integration.android.IntentIntegrator
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -88,6 +89,9 @@ class MainActivity : AppCompatActivity() {
         @Volatile var connection: HttpURLConnection? = null
     )
     private val activeDownloadTasks = ConcurrentHashMap<String, ActiveDownloadTask>()
+
+    private val activeUploadCancelled = AtomicBoolean(false)
+    @Volatile private var activeUploadConnection: HttpURLConnection? = null
 
     companion object {
         private const val PREFS_NAME = "ADropPrefs"
@@ -374,6 +378,7 @@ class MainActivity : AppCompatActivity() {
         val total = uris.size
         Toast.makeText(this, "Uploading $total file(s) to ADropX PC...", Toast.LENGTH_SHORT).show()
         wakeLock?.acquire(30 * 60 * 1000L /* 30 minutes */)
+        activeUploadCancelled.set(false)
 
         val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
         val wifiLock = wifiManager?.createWifiLock(
@@ -391,10 +396,13 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {}
 
             var successCount = 0
-            for (uri in uris) {
+            for ((fileIndex, uri) in uris.withIndex()) {
+                if (activeUploadCancelled.get()) break
+
                 val filename = getFileName(uri) ?: "shared_${System.currentTimeMillis()}"
                 val fileSize = getFileSize(uri)
                 val qFilename = JSONObject.quote(filename)
+                val encodedFilename = URLEncoder.encode(filename, "UTF-8").replace("+", "%20")
 
                 var attempt = 0
                 val maxAttempts = 5
@@ -402,27 +410,20 @@ class MainActivity : AppCompatActivity() {
                 var bytesUploaded = 0L
 
                 while (attempt < maxAttempts && !fileSuccess) {
+                    if (activeUploadCancelled.get()) break
+
                     var conn: HttpURLConnection? = null
                     var stream: InputStream? = null
+                    var pfd: android.os.ParcelFileDescriptor? = null
                     try {
                         val (serverOffset, resumeTransferId) = fetchUploadOffset(serverBaseUrl, filename)
-                        val offset = if (fileSize > 0 && serverOffset >= fileSize) {
-                            fileSize
-                        } else {
-                            serverOffset
-                        }
 
-                        if (fileSize > 0 && offset >= fileSize) {
-                            fileSuccess = true
-                            successCount++
-                            runOnUiThread {
-                                val completeJs = "window.ADropUploadTracker && window.ADropUploadTracker.onComplete($qFilename, $fileSize, '0.0');"
-                                webView.evaluateJavascript(completeJs, null)
-                            }
-                            break
-                        }
+                        // Resume is ONLY valid if server has an active/failed partial upload (offset > 0 and offset < fileSize)
+                        // If serverOffset >= fileSize (file already complete on PC), this is a fresh duplicate send:
+                        // start from 0 at /upload/raw so server saves it cleanly as a collision duplicate (e.g. video (1).mp4)!
+                        val isResuming = (serverOffset > 0 && (fileSize <= 0 || serverOffset < fileSize))
+                        val offset = if (isResuming) serverOffset else 0L
 
-                        val isResuming = offset > 0
                         val endpoint = if (isResuming) {
                             if (serverBaseUrl.endsWith("/")) "${serverBaseUrl}upload/resume" else "$serverBaseUrl/upload/resume"
                         } else {
@@ -431,13 +432,15 @@ class MainActivity : AppCompatActivity() {
 
                         val url = URL(endpoint)
                         conn = url.openConnection() as HttpURLConnection
+                        activeUploadConnection = conn
                         conn.requestMethod = "POST"
                         conn.doOutput = true
                         conn.connectTimeout = 8000
                         conn.readTimeout = 120000
-                        conn.setRequestProperty("X-Filename", filename)
+                        conn.setRequestProperty("X-Filename", encodedFilename)
                         conn.setRequestProperty("X-Device-Type", "mobile")
                         if (isResuming) {
+                            conn.setRequestProperty("X-Offset", offset.toString())
                             conn.setRequestProperty("X-Upload-Offset", offset.toString())
                             if (!resumeTransferId.isNullOrEmpty()) {
                                 conn.setRequestProperty("X-Transfer-Id", resumeTransferId)
@@ -445,17 +448,28 @@ class MainActivity : AppCompatActivity() {
                         }
                         conn.setChunkedStreamingMode(131072) // 128 KB high-speed socket buffer
 
-                        stream = contentResolver.openInputStream(uri)
-                        if (stream == null) {
-                            throw IOException("Unable to open input stream for $filename")
-                        }
-
-                        if (isResuming) {
-                            safeSkip(stream, offset)
+                        // Open stream with kernel-level direct seeking if available
+                        pfd = try { contentResolver.openFileDescriptor(uri, "r") } catch (e: Exception) { null }
+                        stream = if (pfd != null) {
+                            val fis = FileInputStream(pfd.fileDescriptor)
+                            if (isResuming && offset > 0) {
+                                try {
+                                    fis.channel.position(offset)
+                                } catch (e: Exception) {
+                                    safeSkip(fis, offset)
+                                }
+                            }
+                            fis
+                        } else {
+                            val s = contentResolver.openInputStream(uri) ?: throw IOException("Unable to open input stream for $filename")
+                            if (isResuming && offset > 0) {
+                                safeSkip(s, offset)
+                            }
+                            s
                         }
 
                         runOnUiThread {
-                            val startJs = "window.ADropUploadTracker && window.ADropUploadTracker.onStart($qFilename, $fileSize, $isResuming, $offset);"
+                            val startJs = "window.ADropUploadTracker && window.ADropUploadTracker.onStart($qFilename, $fileSize, $isResuming, $offset, ${fileIndex + 1}, $total);"
                             webView.evaluateJavascript(startJs, null)
                         }
 
@@ -469,6 +483,9 @@ class MainActivity : AppCompatActivity() {
                         conn.outputStream.use { output ->
                             var read: Int
                             while (stream.read(buffer).also { read = it } != -1) {
+                                if (activeUploadCancelled.get()) {
+                                    throw IOException("Upload cancelled by user")
+                                }
                                 output.write(buffer, 0, read)
                                 bytesUploaded += read
 
@@ -506,14 +523,22 @@ class MainActivity : AppCompatActivity() {
                             val totalTime = (System.currentTimeMillis() - startTime) / 1000.0
                             val avgSpeed = if (totalTime > 0) ((bytesUploaded - offset) / (1024.0 * 1024.0)) / totalTime else 0.0
                             val avgStr = String.format(Locale.US, "%.1f", avgSpeed)
+                            val isBatchComplete = (fileIndex == uris.lastIndex)
                             runOnUiThread {
-                                val completeJs = "window.ADropUploadTracker && window.ADropUploadTracker.onComplete($qFilename, $fileSize, '$avgStr');"
+                                val completeJs = "window.ADropUploadTracker && window.ADropUploadTracker.onComplete($qFilename, $fileSize, '$avgStr', $isBatchComplete);"
                                 webView.evaluateJavascript(completeJs, null)
                             }
                         } else {
                             throw IOException("Server returned HTTP ${conn.responseCode}")
                         }
                     } catch (e: Exception) {
+                        if (activeUploadCancelled.get()) {
+                            runOnUiThread {
+                                val cancelJs = "window.ADropUploadTracker && window.ADropUploadTracker.onCancelled($qFilename);"
+                                webView.evaluateJavascript(cancelJs, null)
+                            }
+                            break
+                        }
                         attempt++
                         if (attempt < maxAttempts) {
                             val qErr = JSONObject.quote("Connection interrupted · Auto-resuming (${attempt}/$maxAttempts)...")
@@ -535,7 +560,9 @@ class MainActivity : AppCompatActivity() {
                         }
                     } finally {
                         try { stream?.close() } catch (ignored: Exception) {}
+                        try { pfd?.close() } catch (ignored: Exception) {}
                         try { conn?.disconnect() } catch (ignored: Exception) {}
+                        activeUploadConnection = null
                     }
                 }
             }
@@ -545,7 +572,9 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {}
 
             runOnUiThread {
-                if (successCount > 0) {
+                if (activeUploadCancelled.get()) {
+                    Toast.makeText(this@MainActivity, "Upload cancelled", Toast.LENGTH_SHORT).show()
+                } else if (successCount > 0) {
                     Toast.makeText(this@MainActivity, "$successCount file(s) shared successfully!", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(this@MainActivity, "Failed to share files. Check PC connection.", Toast.LENGTH_LONG).show()
@@ -641,6 +670,16 @@ class MainActivity : AppCompatActivity() {
                             task.connection?.disconnect()
                         } catch (e: Exception) {}
                     }
+                }
+            }
+
+            @JavascriptInterface
+            fun cancelUpload() {
+                activeUploadCancelled.set(true)
+                thread {
+                    try {
+                        activeUploadConnection?.disconnect()
+                    } catch (e: Exception) {}
                 }
             }
 
