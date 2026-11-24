@@ -382,10 +382,7 @@ class MainActivity : AppCompatActivity() {
 
         val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
         val wifiLock = wifiManager?.createWifiLock(
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-                WifiManager.WIFI_MODE_FULL_LOW_LATENCY
-            else
-                WifiManager.WIFI_MODE_FULL_HIGH_PERF,
+            WifiManager.WIFI_MODE_FULL_HIGH_PERF,
             "ADrop:HighSpeedUpload"
         )
         wifiLock?.acquire()
@@ -421,8 +418,15 @@ class MainActivity : AppCompatActivity() {
                         // Resume is ONLY valid if server has an active/failed partial upload (offset > 0 and offset < fileSize)
                         // If serverOffset >= fileSize (file already complete on PC), this is a fresh duplicate send:
                         // start from 0 at /upload/raw so server saves it cleanly as a collision duplicate (e.g. video (1).mp4)!
-                        val isResuming = (serverOffset > 0 && (fileSize <= 0 || serverOffset < fileSize))
-                        val offset = if (isResuming) serverOffset else 0L
+                        val effectiveOffset = if (serverOffset > 0) {
+                            serverOffset
+                        } else if (attempt > 0 && bytesUploaded > 0) {
+                            bytesUploaded
+                        } else {
+                            0L
+                        }
+                        val isResuming = (effectiveOffset > 0 && (fileSize <= 0 || effectiveOffset < fileSize))
+                        val offset = if (isResuming) effectiveOffset else 0L
 
                         val endpoint = if (isResuming) {
                             if (serverBaseUrl.endsWith("/")) "${serverBaseUrl}upload/resume" else "$serverBaseUrl/upload/resume"
@@ -435,7 +439,7 @@ class MainActivity : AppCompatActivity() {
                         activeUploadConnection = conn
                         conn.requestMethod = "POST"
                         conn.doOutput = true
-                        conn.connectTimeout = 8000
+                        conn.connectTimeout = 6000
                         conn.readTimeout = 120000
                         conn.setRequestProperty("X-Filename", encodedFilename)
                         conn.setRequestProperty("X-Device-Type", "mobile")
@@ -446,11 +450,14 @@ class MainActivity : AppCompatActivity() {
                                 conn.setRequestProperty("X-Transfer-Id", resumeTransferId)
                             }
                         }
-                        conn.setChunkedStreamingMode(131072) // 128 KB high-speed socket buffer
+                        conn.setChunkedStreamingMode(65536) // 64 KB router TCP window aligned wire speed
+
+                        // Verify network connection is live before updating UI state
+                        conn.connect()
 
                         // Open stream with kernel-level direct seeking if available
                         pfd = try { contentResolver.openFileDescriptor(uri, "r") } catch (e: Exception) { null }
-                        stream = if (pfd != null) {
+                        val rawStream = if (pfd != null) {
                             val fis = FileInputStream(pfd.fileDescriptor)
                             if (isResuming && offset > 0) {
                                 try {
@@ -467,6 +474,8 @@ class MainActivity : AppCompatActivity() {
                             }
                             s
                         }
+                        val bufferedIn = BufferedInputStream(rawStream, 65536)
+                        stream = bufferedIn
 
                         runOnUiThread {
                             val startJs = "window.ADropUploadTracker && window.ADropUploadTracker.onStart($qFilename, $fileSize, $isResuming, $offset, ${fileIndex + 1}, $total);"
@@ -479,10 +488,11 @@ class MainActivity : AppCompatActivity() {
                         val startTime = System.currentTimeMillis()
                         val speeds = mutableListOf<Double>()
 
-                        val buffer = ByteArray(131072)
-                        conn.outputStream.use { output ->
+                        val buffer = ByteArray(65536)
+                        val bufferedOut = BufferedOutputStream(conn.outputStream, 65536)
+                        bufferedOut.use { output ->
                             var read: Int
-                            while (stream.read(buffer).also { read = it } != -1) {
+                            while (bufferedIn.read(buffer).also { read = it } != -1) {
                                 if (activeUploadCancelled.get()) {
                                     throw IOException("Upload cancelled by user")
                                 }
@@ -491,7 +501,7 @@ class MainActivity : AppCompatActivity() {
 
                                 val now = System.currentTimeMillis()
                                 val dt = (now - lastReportTime) / 1000.0
-                                if (dt >= 0.15) {
+                                if (dt >= 0.5) {
                                     val bytesDelta = bytesUploaded - lastReportBytes
                                     val currentSpeed = (bytesDelta / (1024.0 * 1024.0)) / dt
                                     speeds.add(currentSpeed)
@@ -819,10 +829,7 @@ class MainActivity : AppCompatActivity() {
 
         val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
         val wifiLock = wifiManager?.createWifiLock(
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-                WifiManager.WIFI_MODE_FULL_LOW_LATENCY
-            else
-                WifiManager.WIFI_MODE_FULL_HIGH_PERF,
+            WifiManager.WIFI_MODE_FULL_HIGH_PERF,
             "ADrop:HighSpeedDownload"
         )
         wifiLock?.acquire()
