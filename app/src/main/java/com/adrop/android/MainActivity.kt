@@ -724,6 +724,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             @JavascriptInterface
+            fun openPdf(filename: String) {
+                triggerOpenPdf(filename)
+            }
+
+            @JavascriptInterface
             fun isFileDownloaded(filename: String): Boolean {
                 if (completedDownloads.containsKey(filename)) return true
                 val targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
@@ -895,7 +900,8 @@ class MainActivity : AppCompatActivity() {
         downloadUrl: String,
         filename: String,
         mimeTypeHint: String? = null,
-        autoInstallAfter: Boolean = false
+        autoInstallAfter: Boolean = false,
+        autoOpenPdfAfter: Boolean = false
     ) {
         if (activeDownloadTasks.containsKey(filename)) {
             Toast.makeText(this, "Download already in progress for $filename", Toast.LENGTH_SHORT).show()
@@ -1119,6 +1125,15 @@ class MainActivity : AppCompatActivity() {
                         if (autoInstallAfter) {
                             triggerInstallApk(filename)
                         }
+                    } else if (filename.endsWith(".pdf", ignoreCase = true)) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "$filename ready! Tap in list to Open.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        if (autoOpenPdfAfter) {
+                            triggerOpenPdf(filename)
+                        }
                     } else {
                         Toast.makeText(
                             this@MainActivity,
@@ -1164,6 +1179,39 @@ class MainActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 Toast.makeText(this, "Could not open installer: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    fun triggerOpenPdf(filename: String) {
+        runOnUiThread {
+            try {
+                var pdfUri = completedDownloads[filename]
+
+                if (pdfUri == null) {
+                    val targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    val targetFile = File(targetDir, filename)
+                    if (targetFile.exists() && targetFile.length() > 0) {
+                        pdfUri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", targetFile)
+                    }
+                }
+
+                if (pdfUri != null) {
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(pdfUri, "application/pdf")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(Intent.createChooser(intent, "Open PDF with"))
+                } else {
+                    // Smart fallback: If user clicked open PDF but file isn't on phone, trigger high-speed download!
+                    val serverBase = currentConnectedUrl ?: prefs.getString(KEY_LAST_URL, "http://127.0.0.1:8080") ?: "http://127.0.0.1:8080"
+                    val downloadUrl = if (serverBase.endsWith("/")) "${serverBase}download/${Uri.encode(filename)}" else "$serverBase/download/${Uri.encode(filename)}"
+                    Toast.makeText(this, "Downloading $filename to open...", Toast.LENGTH_SHORT).show()
+                    startHighSpeedDownload(downloadUrl, filename, mimeTypeHint = "application/pdf", autoOpenPdfAfter = true)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this, "Could not open PDF: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
