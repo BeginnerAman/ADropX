@@ -33,6 +33,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.zxing.integration.android.IntentIntegrator
 import java.io.BufferedInputStream
@@ -89,6 +90,7 @@ class MainActivity : AppCompatActivity() {
         @Volatile var connection: HttpURLConnection? = null
     )
     private val activeDownloadTasks = ConcurrentHashMap<String, ActiveDownloadTask>()
+    private val completedDownloads = ConcurrentHashMap<String, Uri>()
 
     private val activeUploadCancelled = AtomicBoolean(false)
     @Volatile private var activeUploadConnection: HttpURLConnection? = null
@@ -717,12 +719,86 @@ class MainActivity : AppCompatActivity() {
             }
 
             @JavascriptInterface
+            fun installApk(filename: String) {
+                triggerInstallApk(filename)
+            }
+
+            @JavascriptInterface
+            fun openDownloadsFolder() {
+                runOnUiThread {
+                    try {
+                        val intent = Intent(DownloadManager.ACTION_VIEW_DOWNLOADS).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        try {
+                            val targetPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).path
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                setDataAndType(Uri.parse(targetPath), "*/*")
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            startActivity(intent)
+                        } catch (err: Exception) {
+                            Toast.makeText(this@MainActivity, "Open Downloads folder in File Manager", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+
+            @JavascriptInterface
             fun getVersion(): String {
                 return "3.3.0"
             }
         }, "ADropNative")
 
         webView.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                val uri = request?.url ?: return false
+                return handleCustomUri(uri)
+            }
+
+            @Deprecated("Deprecated in Java")
+            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                val uri = url?.let { Uri.parse(it) } ?: return false
+                return handleCustomUri(uri)
+            }
+
+            private fun handleCustomUri(uri: Uri): Boolean {
+                val scheme = uri.scheme?.lowercase() ?: return false
+
+                // 1. Smart Actions phone calls, emails, SMS, and UPI
+                if (scheme == "tel" || scheme == "mailto" || scheme == "sms" || scheme == "upi") {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
+                        return true
+                    } catch (e: Exception) {
+                        Toast.makeText(this@MainActivity, "No app available to handle this action", Toast.LENGTH_SHORT).show()
+                        return true
+                    }
+                }
+
+                // 2. External web links (e.g. clicked from Smart Actions or chat)
+                if (scheme == "http" || scheme == "https") {
+                    val serverHost = currentConnectedUrl?.let { Uri.parse(it).host }
+                    // If this link points to a DIFFERENT host than our local ADrop server, open in external browser!
+                    if (serverHost != null && uri.host != null && !uri.host.equals(serverHost, ignoreCase = true)) {
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            startActivity(intent)
+                            return true
+                        } catch (e: Exception) {}
+                    }
+                }
+
+                return false
+            }
+
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 swipeRefresh.isRefreshing = false
@@ -1009,19 +1085,65 @@ class MainActivity : AppCompatActivity() {
                     webView.evaluateJavascript("window.ADropDownloadTracker && window.ADropDownloadTracker.onCancelled($qName);", null)
                     Toast.makeText(this@MainActivity, "Download cancelled: $filename", Toast.LENGTH_SHORT).show()
                 } else if (errorOccurred == null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && insertedUri != null) {
+                        completedDownloads[filename] = insertedUri!!
+                    } else if (legacyTargetFile != null && legacyTargetFile?.exists() == true) {
+                        try {
+                            completedDownloads[filename] = FileProvider.getUriForFile(this@MainActivity, "${packageName}.fileprovider", legacyTargetFile!!)
+                        } catch (e: Exception) {}
+                    }
+
                     val avgStr = String.format(Locale.US, "%.1f", avgSpeedMBs)
                     val completeJs = "window.ADropDownloadTracker && window.ADropDownloadTracker.onComplete($qName, $totalBytesRead, $avgStr);"
                     webView.evaluateJavascript(completeJs, null)
-                    Toast.makeText(
-                        this@MainActivity,
-                        "$filename downloaded at ${String.format(Locale.US, "%.1f MB/s", avgSpeedMBs)} to Downloads!",
-                        Toast.LENGTH_LONG
-                    ).show()
+
+                    if (filename.endsWith(".apk", ignoreCase = true)) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "$filename ready! Tap in list to Install.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "$filename downloaded at ${String.format(Locale.US, "%.1f MB/s", avgSpeedMBs)} to Downloads!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                 } else {
                     val qErr = JSONObject.quote(errorOccurred)
                     webView.evaluateJavascript("window.ADropDownloadTracker && window.ADropDownloadTracker.onError($qName, $qErr);", null)
                     Toast.makeText(this@MainActivity, "Download failed: $errorOccurred", Toast.LENGTH_LONG).show()
                 }
+            }
+        }
+    }
+
+    fun triggerInstallApk(filename: String) {
+        runOnUiThread {
+            try {
+                var apkUri = completedDownloads[filename]
+
+                if (apkUri == null) {
+                    val targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    val targetFile = File(targetDir, filename)
+                    if (targetFile.exists()) {
+                        apkUri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", targetFile)
+                    }
+                }
+
+                if (apkUri != null) {
+                    val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(apkUri, "application/vnd.android.package-archive")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(installIntent)
+                } else {
+                    Toast.makeText(this, "File not downloaded yet. Please tap Download first.", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this, "Could not open installer: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
